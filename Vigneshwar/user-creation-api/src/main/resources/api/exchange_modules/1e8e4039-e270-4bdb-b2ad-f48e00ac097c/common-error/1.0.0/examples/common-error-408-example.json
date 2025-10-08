@@ -1,6 +1,0 @@
-{
-  "code": 408,
-  "reason": "Request Timeout",
-  "message": "The request timed out. Please try again later",
-  "type": "REQUEST_TIMEOUT"
-}
