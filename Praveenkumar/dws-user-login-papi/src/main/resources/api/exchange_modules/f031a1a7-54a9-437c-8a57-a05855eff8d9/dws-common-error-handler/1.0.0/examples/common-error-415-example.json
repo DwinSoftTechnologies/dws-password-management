@@ -1,0 +1,6 @@
+{
+  "code": "415",
+  "reason": "Unsupported Media Type",
+  "message":  "The payload media type is not supported",
+  "type": "UNSOPPORTED_MEDIA_TYPE"
+}

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="dws-user-login-papi-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="dws-user-login-papi-config" api="api\dws-user-login-process-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+	<configuration-properties doc:name="Configuration properties" doc:id="47261c4b-bc61-4d59-b83f-d438789b60b3" file="properties\env\${env}.yaml" />
+	<http:request-config name="http-user_login-sapi-request_configuration" doc:name="HTTP Request configuration" doc:id="be48d2cd-75da-4b1c-90a0-5168fbf1ffb4" >
+		<http:request-connection host="${user_login_sapi.host}" port="${user_login_sapi.port}" />
+	</http:request-config>
+	<http:request-config name="http-email_notification-sapi-request_configuration" doc:name="HTTP Request configuration" doc:id="5a8f2c8a-9f0f-48d6-aca8-e4304ed496e8" >
+		<http:request-connection host="${email_notification_sapi.host}" port="${email_notification_sapi.port}" />
+	</http:request-config>
+    
+</mule>

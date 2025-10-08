@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<error-handler name="global-apikit-error-handler" doc:id="275de09a-b4e7-49fd-a60d-a63c1f372875" >
+		<on-error-propagate type="APIKIT:BAD_REQUEST" enableNotifications="true" logException="true">
+                <logger level="INFO" doc:name="Start Common Error Handler Log" doc:id="29c5ad06-8a4d-4616-bd68-b9f5a01de2ef" message="***Bad Request - Invalid input received. CorrelationId: #[correlationId]***"/>
+			<ee:transform doc:name="Set Error Payload &amp; Status Code">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	transaction: "Request Correlation ID :" ++  " " ++ correlationId,
+	apiName: p('api.name'),
+	timestamp:  now(),
+	infoMessage : { 
+        statusCode: 400 as Number,
+		errorType: error.errorType.namespace default "" ++ ":" ++ error.errorType.identifier default "",
+   	    message: error.detailedDescription default""
+     } 
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+			<logger level="INFO" doc:name="End  Common Error Handler Log" doc:id="71324949-f376-433f-9fbd-a6ad801c1367" message="***Bad Request handled successfully. Responding with  400. CorrelationId: #[correlationId]***"/>
+            
+</on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND" enableNotifications="true" logException="true">
+                <logger level="INFO" doc:name="Start Common Error Handler Log" doc:id="b09f32fa-7815-4511-94a4-a601f43d6a4c" message="***Requested resource not found. CorrelationId: #[correlationId]***" />
+			<ee:transform doc:name="Set Error Payload &amp; Status Code">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	transaction: "Request Correlation ID :" ++  " " ++ correlationId,
+	apiName: p('api.name'),
+	timestamp:  now(),
+	infoMessage : { 
+        statusCode: 404 as Number,
+		errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+   	    message: error.detailedDescription default""
+     } 
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+			<logger level="INFO" doc:name="End  Common Error Handler Log" doc:id="b7786d0c-08aa-476f-ab4c-f408e82a2ecc" message="***404 response sent - Resource not found. CorrelationId: #[correlationId]***" />
+            
+</on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED" enableNotifications="true" logException="true">
+                <logger level="INFO" doc:name="Start Common Error Handler Log" doc:id="42477d02-03d0-4d51-a248-2c34cb945f9f" message="***Invalid method used. CorrelationId: #[correlationId]***" />
+			<ee:transform doc:name="Set Error Payload &amp; Status Code">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	transaction: "Request Correlation ID :" ++  " " ++ correlationId,
+	apiName: p('api.name'),
+	timestamp:  now(),
+	infoMessage : { 
+        statusCode: 405 as Number,
+		errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+   	    message: error.detailedDescription default""
+     } 
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[405]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+			<logger level="INFO" doc:name="End  Common Error Handler Log" doc:id="9ffc7549-b78b-423d-b737-418f75c1ef2e" message="***405 response sent - Method Not Allowed. CorrelationId: #[correlationId]***" />
+            
+</on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE" enableNotifications="true" logException="true">
+                <logger level="INFO" doc:name="Start Common Error Handler Log" doc:id="b3bbc5f6-c170-45ef-aee1-418ac9d27302" message="***Invalid method used. CorrelationId: #[correlationId]***" />
+			<ee:transform doc:name="Set Error Payload &amp; Status Code">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	transaction: "Request Correlation ID :" ++  " " ++ correlationId,
+	apiName: p('api.name'),
+	timestamp:  now(),
+	infoMessage : { 
+        statusCode: 406 as Number,
+		errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+   	    message: error.detailedDescription default""
+     } 
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[406]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+			<logger level="INFO" doc:name="End  Common Error Handler Log" doc:id="57f0d742-44e6-47cc-90d5-01c1d99c639c" message="***405 response sent - Method Not Allowed. CorrelationId: #[correlationId]***" />
+            
+</on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE" enableNotifications="true" logException="true">
+                <logger level="INFO" doc:name="Start Common Error Handler Log" doc:id="8abb79cc-9645-46f7-a344-a8ab0b86ada2" message="***Client sent an unsupported media type in request. CorrelationId: #[correlationId]***" />
+			<ee:transform doc:name="Set Error Payload &amp; Status Code">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	transaction: "Request Correlation ID :" ++  " " ++ correlationId,
+	apiName: p('api.name'),
+	timestamp:  now(),
+	infoMessage : { 
+        statusCode: 415 as Number,
+		errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+   	    message: error.detailedDescription default""
+     } 
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[415]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+			<logger level="INFO" doc:name="End  Common Error Handler Log" doc:id="ce560610-be00-4f71-975d-c438ff9ef381" message="***415 response sent - Unsupported Media Type. CorrelationId: #[correlationId]***" />
+            
+</on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED" enableNotifications="true" logException="true">
+                <logger level="INFO" doc:name="Start Common Error Handler Log" doc:id="1b4d96e6-403c-4269-9f88-6008c2e1cf39" message="***Attempt to access an unimplemented feature. CorrelationId: #[correlationId]***" />
+			<ee:transform doc:name="Set Error Payload &amp; Status Code">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	transaction: "Request Correlation ID :" ++  " " ++ correlationId,
+	apiName: p('api.name'),
+	timestamp:  now(),
+	infoMessage : { 
+        statusCode: 501 as Number,
+		errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+   	    message: error.detailedDescription default""
+     } 
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[501]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<logger level="INFO" doc:name="End  Common Error Handler Log" doc:id="df64f13d-c494-401e-9d08-00ff2ed4d3e2" message="***501 response sent - Not Implemented. CorrelationId: #[correlationId]***" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="156b4228-2dfb-45a4-b947-2cc51d25bd72" type="ANY" >
+			<logger level="INFO" doc:name="Start Common Error Handler Log" doc:id="c9475689-6e4b-44f9-9130-f8bb92cf85d8" message="***Unhandled error occurred in flow. CorrelationId: #[correlationId]***" />
+			<ee:transform doc:name="Set Error Payload &amp; Status Code" doc:id="7cb1d06f-4672-4990-a1d7-5b3294f560ba" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	transaction: "Request Correlation ID :" ++  " " ++ correlationId,
+	apiName: p('api.name'),
+	timestamp:  now(),
+	infoMessage : { 
+        statusCode: 500 as Number,
+		errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+   	    message: error.detailedDescription default""
+     } 
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[500]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<logger level="INFO" doc:name="End  Common Error Handler Log" doc:id="867e7f40-0eae-4fd0-93fb-65aa89ade8af" message="***Generic error response sent -500. CorrelationId: #[correlationId]***" />
+		</on-error-propagate>
+	</error-handler>
+	<error-handler name="global-http-error-handler" doc:id="e9538602-347c-49a4-ab70-2e9b033037fe" >
+<!-- HTTP Connectivity Error -->
+<on-error-propagate enableNotifications="true" logException="true" doc:name="HTTP Connectivity Error" type="HTTP:CONNECTIVITY">
+    <logger level="INFO" doc:name="Start HTTP Connectivity Error Log" message="***HTTP connectivity error occurred. CorrelationId: #[correlationId]***" />
+    <ee:transform doc:name="Set HTTP Connectivity Error Payload &amp; Status Code">
+        <ee:message>
+            <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    transaction: "Request Correlation ID :" ++ " " ++ correlationId,
+    apiName: p('api.name'),
+    timestamp: now(),
+    infoMessage : { 
+        statusCode: 502 as Number,
+        errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+        message: error.detailedDescription default ""
+    }
+}]]></ee:set-payload>
+        </ee:message>
+        <ee:variables>
+            <ee:set-variable variableName="httpStatus"><![CDATA[502]]></ee:set-variable>
+        </ee:variables>
+    </ee:transform>
+    <logger level="INFO" doc:name="End HTTP Connectivity Error Log" message="***HTTP connectivity error response sent - 502. CorrelationId: #[correlationId]***" />
+</on-error-propagate>
+<on-error-propagate enableNotifications="true" logException="true" doc:name="HTTP Bad Request Error" doc:id="8e300d90-7b98-49a9-8b7a-351d5ca3457a" type="HTTP:BAD_REQUEST">
+    <logger level="INFO" doc:name="Start HTTP Bad Request Error Log" doc:id="609d1b7b-25c0-420e-a20e-5f9e4404850a"
+            message="***HTTP 400 - Bad Request returned by HTTP Request connector. CorrelationId: #[correlationId]***"/>
+    <ee:transform doc:name="Set HTTP 400 Error Payload &amp; Status Code" doc:id="b057121f-210c-4ab7-b87a-c3e5b775db1f">
+        <ee:message>
+            <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    transaction: "Request Correlation ID :" ++ " " ++ correlationId,
+    apiName: p('api.name'),
+    timestamp: now(),
+    infoMessage : { 
+        statusCode: 400 as Number,
+        errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+        message: error.detailedDescription default ""
+    } 
+}]]></ee:set-payload>
+        </ee:message>
+        <ee:variables>
+            <ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+        </ee:variables>
+    </ee:transform>
+    <logger level="INFO" doc:name="End HTTP Bad Request Error Log" doc:id="a6c6c26d-a6db-4070-ab38-291b6159815d"
+            message="***400 response sent - Bad Request (HTTP Request). CorrelationId: #[correlationId]***"/>
+</on-error-propagate>
+<on-error-propagate enableNotifications="true" logException="true" doc:name="HTTP Forbidden Error" doc:id="77a63db5-a3e1-4327-8ff5-48fde4144d21" type="HTTP:FORBIDDEN">
+    <logger level="INFO" doc:name="Start HTTP Forbidden Error Log" doc:id="cdba804f-d5cf-46f7-93fc-a7fb924c66f3"
+            message="***HTTP 403 - Forbidden returned by HTTP Request connector. CorrelationId: #[correlationId]***"/>
+    <ee:transform doc:name="Set HTTP 403 Error Payload &amp; Status Code" doc:id="74a1752c-b7f6-40f4-b873-3c860610ea95">
+        <ee:message>
+            <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    transaction: "Request Correlation ID :" ++ " " ++ correlationId,
+    apiName: p('api.name'),
+    timestamp: now(),
+    infoMessage : { 
+        statusCode: 403 as Number,
+        errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+        message: error.detailedDescription default ""
+    } 
+}]]></ee:set-payload>
+        </ee:message>
+        <ee:variables>
+            <ee:set-variable variableName="httpStatus"><![CDATA[403]]></ee:set-variable>
+        </ee:variables>
+    </ee:transform>
+    <logger level="INFO" doc:name="End HTTP Forbidden Error Log" doc:id="cf774a1a-6a4a-4f96-8e24-7b0966fe9962"
+            message="***403 response sent - Forbidden (HTTP Request). CorrelationId: #[correlationId]***"/>
+</on-error-propagate>
+
+
+<!-- HTTP Timeout Error -->
+<on-error-propagate enableNotifications="true" logException="true" doc:name="HTTP Timeout Error" type="HTTP:TIMEOUT">
+    <logger level="INFO" doc:name="Start HTTP Timeout Error Log" message="***HTTP timeout occurred. CorrelationId: #[correlationId]***" />
+    <ee:transform doc:name="Set HTTP Timeout Error Payload &amp; Status Code">
+        <ee:message>
+            <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    transaction: "Request Correlation ID :" ++ " " ++ correlationId,
+    apiName: p('api.name'),
+    timestamp: now(),
+    infoMessage : { 
+        statusCode: 504 as Number,
+        errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+        message: error.detailedDescription default ""
+    }
+}]]></ee:set-payload>
+        </ee:message>
+        <ee:variables>
+            <ee:set-variable variableName="httpStatus"><![CDATA[504]]></ee:set-variable>
+        </ee:variables>
+    </ee:transform>
+    <logger level="INFO" doc:name="End HTTP Timeout Error Log" message="***HTTP timeout error response sent - 504. CorrelationId: #[correlationId]***" />
+</on-error-propagate>
+
+<!-- HTTP Unauthorized Error -->
+<on-error-propagate enableNotifications="true" logException="true" doc:name="HTTP Unauthorized Error" type="HTTP:UNAUTHORIZED">
+    <logger level="INFO" doc:name="Start HTTP Unauthorized Error Log" message="***HTTP unauthorized error occurred. CorrelationId: #[correlationId]***" />
+    <ee:transform doc:name="Set HTTP Unauthorized Error Payload &amp; Status Code">
+        <ee:message>
+            <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    transaction: "Request Correlation ID :" ++ " " ++ correlationId,
+    apiName: p('api.name'),
+    timestamp: now(),
+    infoMessage : { 
+        statusCode: 401 as Number,
+        errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+        message: error.detailedDescription default ""
+    }
+}]]></ee:set-payload>
+        </ee:message>
+        <ee:variables>
+            <ee:set-variable variableName="httpStatus"><![CDATA[401]]></ee:set-variable>
+        </ee:variables>
+    </ee:transform>
+    <logger level="INFO" doc:name="End HTTP Unauthorized Error Log" message="***HTTP unauthorized error response sent - 401. CorrelationId: #[correlationId]***" />
+</on-error-propagate>
+
+<!-- HTTP Not Found Error -->
+<on-error-propagate enableNotifications="true" logException="true" doc:name="HTTP Not Found Error" type="HTTP:NOT_FOUND">
+    <logger level="INFO" doc:name="Start HTTP Not Found Error Log" message="***HTTP not found error occurred. CorrelationId: #[correlationId]***" />
+    <ee:transform doc:name="Set HTTP Not Found Error Payload &amp; Status Code">
+        <ee:message>
+            <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    transaction: "Request Correlation ID :" ++ " " ++ correlationId,
+    apiName: p('api.name'),
+    timestamp: now(),
+    infoMessage : { 
+        statusCode: 404 as Number,
+        errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+        message: error.detailedDescription default ""
+    }
+}]]></ee:set-payload>
+        </ee:message>
+        <ee:variables>
+            <ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+        </ee:variables>
+    </ee:transform>
+    <logger level="INFO" doc:name="End HTTP Not Found Error Log" message="***HTTP not found error response sent - 404. CorrelationId: #[correlationId]***" />
+</on-error-propagate>
+
+<!-- HTTP Internal Server Error -->
+<on-error-propagate enableNotifications="true" logException="true" doc:name="HTTP Internal Server Error" type="HTTP:INTERNAL_SERVER_ERROR">
+    <logger level="INFO" doc:name="Start HTTP Internal Server Error Log" message="***HTTP internal server error occurred. CorrelationId: #[correlationId]***" />
+    <ee:transform doc:name="Set HTTP Internal Server Error Payload &amp; Status Code">
+        <ee:message>
+            <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    transaction: "Request Correlation ID :" ++ " " ++ correlationId,
+    apiName: p('api.name'),
+    timestamp: now(),
+    infoMessage : { 
+        statusCode: 500 as Number,
+        errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+        message: error.detailedDescription default ""
+    }
+}]]></ee:set-payload>
+        </ee:message>
+        <ee:variables>
+            <ee:set-variable variableName="httpStatus"><![CDATA[500]]></ee:set-variable>
+        </ee:variables>
+    </ee:transform>
+    <logger level="INFO" doc:name="End HTTP Internal Server Error Log" message="***HTTP internal server error response sent - 500. CorrelationId: #[correlationId]***" />
+</on-error-propagate>
+<on-error-propagate enableNotifications="true" logException="true" doc:name="Generic Error Handler" doc:id="cdf7ada9-3d80-4621-b9d5-a83ff887ea98" type="ANY">
+    <logger level="INFO" doc:name="Start Common ANY Error Log" doc:id="2ba78ed1-21e3-4c78-931e-3e2a365f90a1" message="***Unhandled error occurred in flow. CorrelationId: #[correlationId]***" />
+    
+    <ee:transform doc:name="Set Error Payload &amp; Status Code" doc:id="47f83f90-053e-438c-bb69-f4e61ae48004">
+        <ee:message>
+            <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    transaction: "Request Correlation ID :" ++ " " ++ correlationId,
+    apiName: p('api.name'),
+    timestamp: now(),
+    infoMessage: {
+        statusCode: 500 as Number,
+        errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+        message: error.detailedDescription default ""
+    } 
+}]]></ee:set-payload>
+        </ee:message>
+        <ee:variables>
+            <ee:set-variable variableName="httpStatus"><![CDATA[500]]></ee:set-variable>
+        </ee:variables>
+    </ee:transform>
+    
+    <logger level="INFO" doc:name="End Common ANY Error Log" doc:id="613362af-6f59-40fc-b5c0-a59e7a838132" message="***Generic error response sent - 500. CorrelationId: #[correlationId]***" />
+</on-error-propagate>
+
+</error-handler>
+</mule>

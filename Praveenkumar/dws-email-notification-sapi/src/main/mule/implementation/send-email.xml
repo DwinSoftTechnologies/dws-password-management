@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<email:smtp-config name="Email_SMTP-test" doc:name="Email SMTP" doc:id="5b2225b8-f402-473e-8bb6-5a36a34aec35">
+        <email:smtp-connection host="smtp.gmail.com" port="587" user="test0987email@gmail.com" password="bbyrwugkaasqqnig" timeoutUnit="MINUTES" connectionTimeout="1" readTimeout="1" writeTimeout="1">
+            <email:properties>
+                <email:property key="mail.smtp.starttls.enable" value="true" />
+            </email:properties>
+        </email:smtp-connection>
+    </email:smtp-config>
+	<sub-flow name="post-sendEmail-flow" doc:id="4ef32c8f-fd15-4687-9b1f-321266ed7515">
+    <logger level="INFO" doc:name="Start Send Email" message="*** Sending email to: #[payload.to] | CorrelationId: #[correlationId] ***"/>
+    
+    <!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message" doc:id="7dee5b8a-6c6c-49e1-9b46-979547f09abb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+{
+    from: "test0987email@gmail.com",
+    to: ["alagarsamyp@dwinsoft.in"&#93;,
+    subject: "Requested for OTP Generation",
+    cc: ["test0987email@gmail.com"&#93;,
+    body: "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>OTP Verification</title><style>body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f4f4f7;margin:0;padding:0}.container{max-width:600px;background-color:#ffffff;margin:40px auto;padding:30px;border-radius:12px;box-shadow:0px 4px 10px rgba(0,0,0,0.1);text-align:center}h1{color:#4a90e2;margin-bottom:10px}p{color:#555555;font-size:16px;line-height:1.5}.otp-box{margin:20px 0;display:inline-block;padding:15px 25px;font-size:24px;letter-spacing:5px;font-weight:bold;color:#ffffff;background-color:#4a90e2;border-radius:8px}.footer{margin-top:30px;font-size:12px;color:#999999}</style></head><body><div class='container'><h1>Your One-Time Password</h1><p>We have received a request to verify your email. Please use the OTP below to proceed.</p><div class='otp-box'>234567</div><p>This OTP is valid for the next <strong>1 minute</strong>. Please do not share it with anyone for security reasons.</p><div class='footer'>&copy; 2025 Your Company Name. All rights reserved.</div></div></body></html>" as String,
+    bodyType: "text/html"
+}&#93;&#93;></ee:set-payload>
+			</ee:message>
+		</ee:transform> [STUDIO] -->
+		<ee:transform doc:name="Transform Message" doc:id="153a9037-a4e2-46e4-94b2-5990b31fba8f" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="vOtp" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.otp]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="3ec5d3c3-fa04-4ce8-b1b0-520473e44354" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+  "from": p('email.fromAddress'),
+  "to": vars.vGetValidUser.email ,
+  "subject": "Requested for OTP Generation",
+  "cc": payload.cc default "",
+  "body": "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>OTP Verification</title><style>body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f4f4f7;margin:0;padding:0}.container{max-width:600px;background-color:#ffffff;margin:40px auto;padding:30px;border-radius:12px;box-shadow:0px 4px 10px rgba(0,0,0,0.1);text-align:center}h1{color:#4a90e2;margin-bottom:10px}p{color:#555555;font-size:16px;line-height:1.5}.otp-box{margin:20px 0;display:inline-block;padding:15px 25px;font-size:24px;letter-spacing:5px;font-weight:bold;color:#ffffff;background-color:#4a90e2;border-radius:8px}.footer{margin-top:30px;font-size:12px;color:#999999}</style></head><body><div class='container'><h1>Your One-Time Password</h1><p>We have received a request to verify your email. Please use the OTP below to proceed.</p><div class='otp-box'>" ++ vars.vOtp ++ "</div><p>This OTP is valid for the next <strong>1 minute</strong>. Please do not share it with anyone for security reasons.</p><div class='footer'>&copy; 2025 Your Company Name. All rights reserved.</div></div></body></html>",
+  "bodyType": "text/html"  
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="31bae4f9-8c53-42a7-85a1-7243c2248a68" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="vFromEmail" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.from]]></ee:set-variable>
+				<ee:set-variable variableName="vToAddress" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.to]]></ee:set-variable>
+				<ee:set-variable variableName="vCcAddress" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.cc]]></ee:set-variable>
+				<ee:set-variable variableName="vSubject" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.subject]]></ee:set-variable>
+				<ee:set-variable variableName="vBody" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.body]]></ee:set-variable>
+				<ee:set-variable variableName="vBodyType" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.bodyType]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<email:send doc:name="Send Email to users" doc:id="d93eeb73-b846-418d-b782-388b6703c941" config-ref="Email_SMTP-test" fromAddress="#[vars.vFromEmail]" toAddresses="#[vars.vToAddress]" subject="#[vars.vSubject]" ccAddresses="#[vars.vCcAddress]">
+			<email:body contentType="#[vars.vBodyType]" >
+				<email:content ><![CDATA[#[vars.vBody]]]></email:content>
+			</email:body>
+		</email:send>
+		<logger level="INFO" doc:name="End Send Email" message="*** Email successfully sent to: #[payload.to] | CorrelationId: #[correlationId] ***"/>
+</sub-flow>
+	
+</mule>

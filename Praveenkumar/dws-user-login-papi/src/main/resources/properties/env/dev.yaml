@@ -1,0 +1,23 @@
+http:
+  host: "0.0.0.0"
+  port: "8081"
+  path: "/api/*"
+  
+api.name : "dws-user-login-papi"  
+      
+user_login_sapi:
+  host: ""
+  port: ""
+  path:
+    registerUser:  "/api/user/register"
+    getAllUsers: "/api/user/getAllUser" 
+    getUserByEmailId: "/api/user/{email}"
+    forgotPassword: "/api/forgotPassword"
+    authenticateUser: "/api/authenticateUser"
+email_notification_sapi:
+  host: ""
+  port: ""
+  path:
+    emailSend: "/api/sendEmail"
+    
+email.fromAddress: "test0987email@gmail.com"    

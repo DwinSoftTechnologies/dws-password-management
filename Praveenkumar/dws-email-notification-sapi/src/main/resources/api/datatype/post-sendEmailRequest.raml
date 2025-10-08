@@ -1,0 +1,35 @@
+#%RAML 1.0 DataType
+type: object
+properties:
+  from:
+    type: string
+    description: Recipient email address.
+    required: false
+    pattern: "^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$"
+  to:
+    type: array
+    description: Recipient email address.
+    items:
+      type : string
+      pattern: "^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$"
+  cc:
+    type: array
+    description: Recipient email address.
+    required: false
+    items:
+      type : string
+      pattern: "^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$"
+  subject:
+    type: string
+    description: Subject of the email.
+    example: "Welcome to the Portal"
+  body:
+    type: string
+    required: false
+    description: Email body content in HTML or plain text.
+    example: "Hello, your account has been successfully created."
+  bodyType:
+    type: string
+    description: mime type of notification
+    required: false
+  

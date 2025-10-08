@@ -1,0 +1,12 @@
+#%RAML 1.0 DataType
+type: object
+properties:
+  email:
+    type: string
+    pattern: ^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$
+    description: Registered email address of the user.
+    example: "praveen123@gmail.com"
+  otp:
+    type: string
+    description: One Time Password (only required for verifyOtp).
+    example: "482913"

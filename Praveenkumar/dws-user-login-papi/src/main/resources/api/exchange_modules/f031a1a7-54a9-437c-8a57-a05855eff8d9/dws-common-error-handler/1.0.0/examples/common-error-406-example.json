@@ -1,0 +1,6 @@
+{
+  "code": 406,
+  "reason": "Not Acceptable",
+  "message": "One or more request parameters are not acceptable",
+  "type": "NOT_ACCEPTABLE"
+}

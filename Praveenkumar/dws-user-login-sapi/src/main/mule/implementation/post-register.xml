@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="post-register-flow" doc:id="53222000-403b-4c35-8c7e-4961db5e42ab" >
+		<logger level="INFO" doc:name="Start Register New User" doc:id="6274f659-d60d-47cd-bede-108994930fdc" message="*** Received request to register a new user with email: #[payload.email] | CorrelationId: #[correlationId] ***"/>
+		<until-successful maxRetries="${untilSuccess.maxRetries}" doc:name="Until Successful" doc:id="736318d8-9085-474a-8ae1-680075cacd66" millisBetweenRetries="${untilSuccess.retriesTime}" >
+			<db:insert doc:name="Create new Register User" doc:id="2af59bc3-25ec-4a0f-bc96-4fd16ef2ed9e" config-ref="Database_Config">
+			<db:sql><![CDATA[${database_query.registerUser}]]></db:sql>
+				<db:input-parameters ><![CDATA[#[{
+  "firstname": payload.firstName,
+  "lastname": payload.lastName,
+  "employeeid": payload.employeeId,
+  "email": payload.email,
+  "department": payload.department,
+  "dateofjoining" : payload.dateOfJoining,
+  "phonenumber": payload.phoneNumber,
+  "password": payload.password
+}]]]></db:input-parameters>
+		</db:insert>
+		</until-successful>
+		<logger level="INFO" doc:name="End Register New User" doc:id="20e0d8ae-6d6d-4434-b2de-cd6898851d34" message="*** User registration completed successfully  | CorrelationId: #[correlationId] ***"/>
+	</sub-flow>
+</mule>

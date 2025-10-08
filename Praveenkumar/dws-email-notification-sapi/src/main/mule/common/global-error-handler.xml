@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+  <error-handler name="global-apikit-error-handler" doc:id="17ce009a-bba5-4e77-92b6-fd3aeabb41f5">
+
+	<on-error-propagate type="APIKIT:BAD_REQUEST" enableNotifications="true" logException="true">
+      <logger level="INFO" doc:name="Start Common Error Handler Log"
+              message="***Bad Request - Invalid input received in #[p('api.name')]. CorrelationId: #[correlationId]***"/>
+      <ee:transform doc:name="Set Error Payload &amp; Status Code">
+        <ee:message>
+          <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	transaction: "Request Correlation ID :" ++  " " ++ correlationId,
+	apiName: p('api.name'),
+	timestamp:  now(),
+	infoMessage : { 
+        statusCode: 400 as Number,
+		errorType: error.errorType.namespace default "" ++ ":" ++ error.errorType.identifier default "",
+   	    message: error.detailedDescription default""
+     } 
+}]]></ee:set-payload>
+        </ee:message>
+        <ee:variables>
+          <ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+        </ee:variables>
+      </ee:transform>
+      <logger level="INFO" doc:name="End  Common Error Handler Log"
+              message="***Bad Request handled successfully. Responding with  400. CorrelationId: #[correlationId]***"/>
+    </on-error-propagate>
+
+    <on-error-propagate type="APIKIT:NOT_FOUND" enableNotifications="true" logException="true">
+      <logger level="INFO" doc:name="Start Common Error Handler Log"
+              message="***Requested resource not found in #[p('api.name')]. CorrelationId: #[correlationId]***" />
+      <ee:transform doc:name="Set Error Payload &amp; Status Code">
+        <ee:message>
+          <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	transaction: "Request Correlation ID :" ++  " " ++ correlationId,
+	apiName: p('api.name'),
+	timestamp:  now(),
+	infoMessage : { 
+        statusCode: 404 as Number,
+		errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+   	    message: error.detailedDescription default""
+     } 
+}]]></ee:set-payload>
+        </ee:message>
+        <ee:variables>
+          <ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+        </ee:variables>
+      </ee:transform>
+      <logger level="INFO" doc:name="End  Common Error Handler Log"
+              message="***404 response sent - Resource not found. CorrelationId: #[correlationId]***" />
+    </on-error-propagate>
+
+    <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED" enableNotifications="true" logException="true">
+      <logger level="INFO" doc:name="Start Common Error Handler Log"
+              message="***Invalid method used in #[p('api.name')]. CorrelationId: #[correlationId]***" />
+      <ee:transform doc:name="Set Error Payload &amp; Status Code">
+        <ee:message>
+          <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	transaction: "Request Correlation ID :" ++  " " ++ correlationId,
+	apiName: p('api.name'),
+	timestamp:  now(),
+	infoMessage : { 
+        statusCode: 405 as Number,
+		errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+   	    message: error.detailedDescription default""
+     } 
+}]]></ee:set-payload>
+        </ee:message>
+        <ee:variables>
+          <ee:set-variable variableName="httpStatus"><![CDATA[405]]></ee:set-variable>
+        </ee:variables>
+      </ee:transform>
+      <logger level="INFO" doc:name="End  Common Error Handler Log"
+              message="***405 response sent - Method Not Allowed. CorrelationId: #[correlationId]***" />
+    </on-error-propagate>
+
+    <on-error-propagate type="APIKIT:NOT_ACCEPTABLE" enableNotifications="true" logException="true">
+      <logger level="INFO" doc:name="Start Common Error Handler Log"
+              message="***Requested Accept type not supported in #[p('api.name')]. CorrelationId: #[correlationId]***" />
+      <ee:transform doc:name="Set Error Payload &amp; Status Code">
+        <ee:message>
+          <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	transaction: "Request Correlation ID :" ++  " " ++ correlationId,
+	apiName: p('api.name'),
+	timestamp:  now(),
+	infoMessage : { 
+        statusCode: 406 as Number,
+		errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+   	    message: error.detailedDescription default""
+     } 
+}]]></ee:set-payload>
+        </ee:message>
+        <ee:variables>
+          <ee:set-variable variableName="httpStatus"><![CDATA[406]]></ee:set-variable>
+        </ee:variables>
+      </ee:transform>
+      <logger level="INFO" doc:name="End  Common Error Handler Log"
+              message="***406 response sent - Not Acceptable. CorrelationId: #[correlationId]***" />
+    </on-error-propagate>
+
+    <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE" enableNotifications="true" logException="true">
+      <logger level="INFO" doc:name="Start Common Error Handler Log"
+              message="***Client sent an unsupported media type in request to #[p('api.name')]. CorrelationId: #[correlationId]***" />
+      <ee:transform doc:name="Set Error Payload &amp; Status Code">
+        <ee:message>
+          <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	transaction: "Request Correlation ID :" ++  " " ++ correlationId,
+	apiName: p('api.name'),
+	timestamp:  now(),
+	infoMessage : { 
+        statusCode: 415 as Number,
+		errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+   	    message: error.detailedDescription default""
+     } 
+}]]></ee:set-payload>
+        </ee:message>
+        <ee:variables>
+          <ee:set-variable variableName="httpStatus"><![CDATA[415]]></ee:set-variable>
+        </ee:variables>
+      </ee:transform>
+      <logger level="INFO" doc:name="End  Common Error Handler Log"
+              message="***415 response sent - Unsupported Media Type. CorrelationId: #[correlationId]***" />
+    </on-error-propagate>
+
+    <on-error-propagate type="APIKIT:NOT_IMPLEMENTED" enableNotifications="true" logException="true">
+      <logger level="INFO" doc:name="Start Common Error Handler Log"
+              message="***Attempt to access an unimplemented feature in #[p('api.name')]. CorrelationId: #[correlationId]***" />
+      <ee:transform doc:name="Set Error Payload &amp; Status Code">
+        <ee:message>
+          <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	transaction: "Request Correlation ID :" ++  " " ++ correlationId,
+	apiName: p('api.name'),
+	timestamp:  now(),
+	infoMessage : { 
+        statusCode: 501 as Number,
+		errorType: error.errorType.namespace default "" ++ " : " ++ error.errorType.identifier default "",
+   	    message: error.detailedDescription default""
+     } 
+}]]></ee:set-payload>
+        </ee:message>
+        <ee:variables >
+          <ee:set-variable variableName="httpStatus" ><![CDATA[501]]></ee:set-variable>
+        </ee:variables>
+      </ee:transform>
+      <logger level="INFO" doc:name="End  Common Error Handler Log"
+              message="***501 response sent - Not Implemented. CorrelationId: #[correlationId]***" />
+    </on-error-propagate>
+    
+  </error-handler>
+	<error-handler name="global-email-error-handler" doc:id="b9ba2ba9-7ead-4ed3-9a45-3cb4649352df" >
+<!-- [STUDIO:"Email - Invalid Address"]<on-error-propagate type="EMAIL:INVALID_ADDRESS" doc:name="Email - Invalid Address">
+        <logger level="ERROR" doc:name="Start Common Error Handler Log"
+                message="***** Start Common Error Handler Log *****&#13;Error Type: EMAIL:INVALID_ADDRESS&#13;Description: Invalid email address provided.&#13;******************************"/>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+{
+    transaction: vars.transactionId default "",
+    apiName: "dws-email-notification-sapi",
+    timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"},
+    infoMessage: {
+        statusCode: vars.httpStatus,
+        errorType: "Invalid Email Address",
+        message: "The provided email address format is invalid."
+    }
+}&#93;&#93;></ee:set-payload>
+            </ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[400&#93;&#93;></ee:set-variable>
+				</ee:variables>
+        </ee:transform>
+        <logger level="ERROR" doc:name="End Common Error Handler Log"
+                message="***** End Common Error Handler Log *****"/>
+    </on-error-propagate> [STUDIO] -->
+
+    <on-error-propagate type="EMAIL:CONNECTIVITY" doc:name="Email - Connectivity Error">
+        <logger level="ERROR" doc:name="Start Common Error Handler Log"
+                message="***** Start Common Error Handler Log *****&#13;Error Type: EMAIL:CONNECTIVITY&#13;Description: Could not connect to the email server.&#13;******************************"/>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    transaction: vars.transactionId default "",
+    apiName: "dws-email-notification-sapi",
+    timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"},
+    infoMessage: {
+        statusCode: vars.httpStatus,
+        errorType: "Email Connectivity Error",
+        message: "Unable to connect to the email server. Please try again later."
+    }
+}]]></ee:set-payload>
+            </ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[502]]></ee:set-variable>
+				</ee:variables>
+        </ee:transform>
+        <logger level="ERROR" doc:name="End Common Error Handler Log"
+                message="***** End Common Error Handler Log *****"/>
+    </on-error-propagate>
+
+    <on-error-propagate type="EMAIL:SEND" doc:name="Email - Send Error">
+        <logger level="ERROR" doc:name="Start Common Error Handler Log"
+                message="***** Start Common Error Handler Log *****&#13;Error Type: EMAIL:SEND&#13;Description: Failed to send the email.&#13;******************************"/>
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    transaction: vars.transactionId default "",
+    apiName: "dws-email-notification-sapi",
+    timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"},
+    infoMessage: {
+        statusCode: vars.httpStatus,
+        errorType: "Email Send Failure",
+        message: "An error occurred while sending the email."
+    }
+}]]></ee:set-payload>
+            </ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA["500"]]></ee:set-variable>
+				</ee:variables>
+        </ee:transform>
+        <logger level="ERROR" doc:name="End Common Error Handler Log"
+                message="***** End Common Error Handler Log *****"/>
+    </on-error-propagate>
+		<!-- [STUDIO:"Email - Timeout"]<on-error-propagate type="EMAIL:TIMEOUT" doc:name="Email - Timeout">
+        <logger level="ERROR" doc:name="Start Common Error Handler Log" message="***** Start Common Error Handler Log *****&#13;Error Type: EMAIL:TIMEOUT&#13;Description: Email sending timed out.&#13;******************************" />
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+{
+    transaction: vars.transactionId default "",
+    apiName: "dws-email-notification-sapi",
+    timestamp: now() as String {format: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"},
+    infoMessage: {
+        statusCode: vars.httpStatus,
+        errorType: "Email Timeout",
+        message: "The email sending operation timed out."
+    }
+}&#93;&#93;></ee:set-payload>
+            </ee:message>
+				<ee:variables>
+					<ee:set-variable variableName="httpStatus"><![CDATA[504&#93;&#93;></ee:set-variable>
+				</ee:variables>
+        </ee:transform>
+        <logger level="ERROR" doc:name="End Common Error Handler Log" message="***** End Common Error Handler Log *****" />
+    </on-error-propagate> [STUDIO] -->	</error-handler>
+</mule>

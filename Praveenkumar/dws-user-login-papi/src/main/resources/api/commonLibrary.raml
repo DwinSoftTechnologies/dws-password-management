@@ -1,0 +1,13 @@
+#%RAML 1.0 Library
+usage:
+types:
+  registerUser: !include datatype/post-register-datatype.raml
+  authenticateUser: !include datatype/post-authenticate-datatype.raml
+  forgotPassword: !include datatype/patch-forgotPassword-dataytype.raml
+  sendOtp: !include datatype/post-sendOtp-datatype.raml
+  verifyOtp: !include datatype/post-verifyOtp-datatype.raml
+
+traits:
+  errorHandler: !include exchange_modules/f031a1a7-54a9-437c-8a57-a05855eff8d9/dws-common-error-handler/1.0.0/dws-common-error-handler.raml
+
+  clientIdEnforcement: !include exchange_modules/f031a1a7-54a9-437c-8a57-a05855eff8d9/dws-clientid-enforcement/1.0.0/dws-clientId-enforcement.raml
