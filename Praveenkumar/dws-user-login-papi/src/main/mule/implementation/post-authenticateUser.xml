@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+          http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+          http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+          http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+          http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+    <!-- Object Store Configuration -->
+    <os:object-store name="OtpObjectStore"
+                     doc:name="OTP Object Store"
+                     maxEntries="-1"
+                     entryTtl="60000"
+                     entryTtlUnit="MILLISECONDS" />
+
+    <!-- 🔹 Reusable Subflow to Generate + Send OTP -->
+    <sub-flow name="post-authenticateUser-flow">
+        <logger level="INFO" doc:name="Log - Start Authentication" message="*** Authentication request for email: #[payload.email] | CorrelationId: #[correlationId] ***" />
+
+        <!-- Call SAPI -->
+        <http:request method="POST" config-ref="http-user_login-sapi-request_configuration" path="${user_login_sapi.path.authenticateUser}" target="vGetValidUser" doc:name="Authenticate User in SAPI" />
+
+        <choice doc:name="Choice - Validate Credentials">
+            <when expression="#[payload.email == vars.vGetValidUser.email and payload.password == vars.vGetValidUser.password]">
+                <set-variable variableName="vUserEmail" value="#[payload.email]" doc:name="Set vUserEmail" />
+                <flow-ref name="subflow-generateAndSendOtp" doc:name="Call Generate and Send OTP Subflow" />
+            </when>
+            <otherwise>
+                <raise-error type="ERROR:USER_NOT_EXIST" description="Invalid Username or Password" />
+            </otherwise>
+        </choice>
+
+        <logger level="INFO" doc:name="Log - End Authentication" message="*** Authentication flow completed for email: #[payload.email] | CorrelationId: #[correlationId] ***" />
+    </sub-flow>
+	<sub-flow name="subflow-generateAndSendOtp" doc:id="d725d3e7-4385-4a4b-9b8e-e3f17b5da784">
+        <logger level="INFO"
+                doc:name="Log - Start OTP Generation"
+                message="*** Generating OTP for email: #[vars.vUserEmail] | CorrelationId: #[correlationId] ***"/>
+
+        <!-- Generate OTP -->
+        <ee:transform doc:name="Generate OTP">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    otp: randomInt(1000000) as String {format: "000000"}
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+        <set-variable variableName="vGeneratedOtp"
+                      value="#[payload.otp]"
+                      doc:name="Set vGeneratedOtp"/>
+
+        <!-- Store OTP in Object Store with 1 min TTL -->
+        <os:store key="#[vars.vGeneratedOtp]"
+                  value="#[vars.vUserEmail]"
+                  objectStore="OtpObjectStore"
+                  doc:name="Store OTP in Object Store"/>
+
+        <!-- Send OTP Email -->
+        <http:request method="POST"
+                      config-ref="http-email_notification-sapi-request_configuration"
+                      path="${email_notification_sapi.path.emailSend}"
+                      doc:name="Send OTP Email">
+            <http:body><![CDATA[#[{
+  from: p('email.fromAddress'),
+  to: vars.vUserEmail,
+  subject: "Requested for OTP Generation",
+  cc: "",
+  body: "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>OTP Verification</title><style>body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f4f4f7;margin:0;padding:0}.container{max-width:600px;background-color:#ffffff;margin:40px auto;padding:30px;border-radius:12px;box-shadow:0px 4px 10px rgba(0,0,0,0.1);text-align:center}h1{color:#4a90e2;margin-bottom:10px}p{color:#555555;font-size:16px;line-height:1.5}.otp-box{margin:20px 0;display:inline-block;padding:15px 25px;font-size:24px;letter-spacing:5px;font-weight:bold;color:#ffffff;background-color:#4a90e2;border-radius:8px}.footer{margin-top:30px;font-size:12px;color:#999999}</style></head><body><div class='container'><h1>Your One-Time Password</h1><p>We have received a request to verify your email. Please use the OTP below to proceed.</p><div class='otp-box'>" 
+        ++ vars.vGeneratedOtp 
+        ++ "</div><p>This OTP is valid for the next <strong>1 minute</strong>. Please do not share it with anyone for security reasons.</p><div class='footer'>&copy; 2025 Your Company Name. All rights reserved.</div></div></body></html>",
+  bodyType: "text/html"
+}]]]></http:body>
+        </http:request>
+
+        <logger level="INFO"
+                doc:name="Log - OTP Sent"
+                message="*** OTP sent to email: #[vars.vUserEmail] | CorrelationId: #[correlationId] ***"/>
+    </sub-flow>
+
+    <!-- 🔹 Authenticate User Flow -->
+
+    <!-- 🔹 Verify OTP Flow -->
+    <flow name="post:\verify-otp:application\json" doc:id="7fd245ad-b82e-4441-b4a7-1a99e02e1d4d">
+        <set-variable variableName="vOtpInput"
+                      value="#[payload.otp]"
+                      doc:name="Set vOtpInput"/>
+
+        <!-- Retrieve OTP from Object Store -->
+        <os:retrieve key="#[vars.vOtpInput]"
+                     objectStore="OtpObjectStore"
+                     target="vStoredEmail"
+                     defaultValue="null"
+                     doc:name="Retrieve OTP from Object Store"/>
+
+        <choice doc:name="Choice - Validate OTP">
+            <when expression="#[vars.vStoredEmail != null]">
+                <logger level="INFO"
+                        doc:name="Log - OTP Verified"
+                        message="*** OTP verified successfully for email: #[vars.vStoredEmail] | CorrelationId: #[correlationId] ***"/>
+                <!-- ✅ Continue login success logic here -->
+            </when>
+            <otherwise>
+                <raise-error type="ERROR:OTP_INVALID_OR_EXPIRED"
+                             description="OTP is invalid or has expired. Please request a new OTP."/>
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- 🔹 Resend OTP Flow -->
+    <flow name="post:\resend-otp:application\json">
+        <set-variable variableName="vUserEmail"
+                      value="#[payload.email]"
+                      doc:name="Set vUserEmail"/>
+        <flow-ref name="subflow-generateAndSendOtp"
+                  doc:name="Call Generate and Send OTP Subflow"/>
+    </flow>
+
+</mule>

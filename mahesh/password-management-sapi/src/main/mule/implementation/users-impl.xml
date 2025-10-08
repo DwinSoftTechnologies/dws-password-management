@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="register_users-implSub_Flow" doc:id="f246ff43-7fe9-4b99-a701-b14fa55e70ef" >
+		<logger level="INFO" doc:name="Before Db request" doc:id="ace5d94c-6889-4b0e-b3c8-f3c844bd9c5d" message="Before Db request | correlationId : #[correlationId]"/>
+		<try doc:name="Try" doc:id="a00369cc-14ba-401d-9485-c9a78355889f">
+			<db:insert doc:name="Register user in db" doc:id="05ab06e0-0fe4-4f73-a1b8-c26d193f1ebd" config-ref="Database_Config">
+					<db:sql><![CDATA[INSERT INTO public.user_register (username,email, phone,  password) VALUES(:username, :email, :phone, :password);]]></db:sql>
+					<db:input-parameters><![CDATA[#[payload]]]></db:input-parameters>
+				</db:insert>
+				<error-handler ref="db-errorHandler" />
+		</try>
+		<ee:transform doc:name="response payload" doc:id="18c805ac-91e1-42a4-827d-7052d2946796" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{"message" : "User registered successfully"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="After Db request" doc:id="68cfb0bf-364d-4b26-89be-ac4e47a80648" message="After Db request  | correlationId : #[correlationId]"/>
+	</sub-flow>
+	<sub-flow name="get_users-implSub_Flow" doc:id="ba197082-2e50-4287-b375-ca183a129b8c" >
+		<logger level="INFO" doc:name="Before Db request" doc:id="74cacbe3-9624-4159-bb8a-98efd445c33a" message="Before Db request | correlationId : #[correlationId]"/>
+		<try doc:name="Try" doc:id="d747bc0c-7dba-43e2-bd45-6718a81a23ba">
+			<db:select doc:name="fetch user from db" doc:id="8c866e9e-2066-49c2-9cb3-83b0152c8f08" config-ref="Database_Config">
+					<db:sql><![CDATA[#[payload]]]></db:sql>
+				</db:select>
+				<error-handler ref="db-errorHandler" />
+		</try>
+		<ee:transform doc:name="response payload" doc:id="4904a698-f49b-4c4d-8850-1acb2936cfcc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="After Db request" doc:id="1f308fff-a48d-48f4-b3dd-37e35706fff0" message="After Db request | correlationId : #[correlationId]"/>
+	</sub-flow>
+	<sub-flow name="login_users-implSub_Flow" doc:id="c6e215a1-f030-4e24-9660-7a5aec1e4e17" >
+		<logger level="INFO" doc:name="Before Db request" doc:id="ace2a246-bcc7-4b83-8d4c-4a23e04bd566" message="Before Db request | correlationId : #[correlationId]" />
+		<try doc:name="Try" doc:id="a9543970-feb2-48e5-becf-239c634d5fe0" >
+			<db:insert doc:name="store session token in db" doc:id="29fe45b3-2d39-4997-b6f0-2173e3356484" config-ref="Database_Config" >
+				<db:sql ><![CDATA[INSERT INTO public.user_login (session_token, username) VALUES(:session_token , :username);]]></db:sql>
+				<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+			</db:insert>
+		</try>
+		<ee:transform doc:name="response payload" doc:id="235fa50c-9443-48ea-b3a5-1ca88b54e1cd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{"message" : "User logged in successfully"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="After Db request" doc:id="bb7e6252-f4ee-45dc-b523-aba83d5db51d" message="After Db request  | correlationId : #[correlationId]" />
+	</sub-flow>
+	<sub-flow name="signout_users-implSub_Flow" doc:id="77b6f9c5-7ca8-4207-b80b-d87d73cbeefa" >
+		<logger level="INFO" doc:name="Before Db request" doc:id="61eab5de-9008-4412-833e-a453dc89d4dd" message="Before Db request | correlationId : #[correlationId]" />
+		<try doc:name="Try" doc:id="d652a9eb-22fc-4665-a0e0-cefe82c608b5" >
+			<db:delete doc:name="signout user" doc:id="529a38a7-933d-40b0-aa6c-2a754c027afe" config-ref="Database_Config">
+				<db:sql ><![CDATA[#[payload]]]></db:sql>
+			</db:delete>
+		</try>
+		<logger level="INFO" doc:name="After Db request" doc:id="bfb27e78-8ad7-44e0-b343-963bec16cab6" message="After Db request | correlationId : #[correlationId]" />
+	</sub-flow>
+	<sub-flow name="verify_token-implSub_Flow" doc:id="93bb569c-1232-4d77-b44b-03b88adc16d1" >
+		<logger level="INFO" doc:name="Before Db request" doc:id="84579543-cbb5-40ee-baf6-c8f0da406649" message="Before Db request | correlationId : #[correlationId]" />
+		<try doc:name="Try" doc:id="54dd1bbb-4d8c-4f95-b665-031165bc3590" >
+			<db:select doc:name="verify token from db" doc:id="79cdccb7-66a1-48af-be3c-fd02cdb0305b" config-ref="Database_Config" >
+				<db:sql ><![CDATA[#[payload]]]></db:sql>
+			</db:select>
+		</try>
+		<ee:transform doc:name="response payload" doc:id="3850e67f-8b67-4cc7-9cc9-41e06adc38cd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="After Db request" doc:id="1f521d7c-9f60-46b1-abde-d15aad88503a" message="After Db request | correlationId : #[correlationId]" />
+	</sub-flow>
+</mule>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd 
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="dws-userRegistration-papi-listener-config">
+        <http:listener-connection host="${http.host}" port="${http.port}" readTimeout="${http.default.httptimeout}"/>
+    </http:listener-config>
+        <apikit:config name="dws-userRegistration-papi-config" api="dws-userRegistration-papi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />    
+	<configuration-properties doc:name="Configuration properties" doc:id="7e64b5cc-fbc6-45e4-8a47-2ea8bd7a5f8b" file="properties\project-properties.yaml" />
+	<configuration-properties doc:name="Configuration properties" doc:id="389fa1d1-ed69-4714-8567-b5671da42951" file="properties/env/${env}.yaml" />
+	<secure-properties:config name="secure-properties-config" doc:name="Secure Properties Config" doc:id="15bbaec4-98eb-46f2-afaf-d963ee54ef9f" file="properties/secure/secure-${env}.yaml" key="${key}" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<!-- <api-gateway:autodiscovery apiId="${api.instanceId}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="c4d0cf89-4abe-4d21-a098-562d182f03c0" flowRef="dws-userRegistration-sapi-main" /> -->
+	<http:request-config name="HTTP-Request-config-userRegistration-sapi" doc:name="HTTP Request configuration" doc:id="9060e001-8dd1-4e19-9571-019bd208d77d" basePath="${userRegistration-sapi.basePath}">
+		<http:request-connection host="${userRegistration-sapi.host}" port="${userRegistration-sapi.port}" />
+	</http:request-config>
+ 
+	
+	
+</mule>

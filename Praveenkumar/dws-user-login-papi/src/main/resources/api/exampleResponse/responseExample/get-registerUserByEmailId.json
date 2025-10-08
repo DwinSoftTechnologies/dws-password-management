@@ -1,0 +1,10 @@
+[{
+    "employeeId": "DW0001",
+    "firstName": "Praveen",
+    "lastName": "Kumar",
+    "email": "praveen123@gmail.com",
+    "department": "IT",
+    "dateOfJoining": "2025-08-01",
+    "phoneNumber": "91234567890",
+    "password": "P@ssw0rd1"
+}]

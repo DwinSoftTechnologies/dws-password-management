@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <flow name="dws-user-login-papi-main">
+        <http:listener path="/api/*" config-ref="dws-user-login-papi-httpListenerConfig">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <logger level="INFO" doc:name="User login main logger" doc:id="4f0cadd8-0d3b-412f-8f34-b8279692eba8" message="*** Received request on User login PAPI endpoint: #[attributes.requestPath] | CorrelationId: #[correlationId]***" />
+		<apikit:router config-ref="dws-user-login-papi-config" doc:name="APIkit-router-uer-login-papi"/>
+		<error-handler ref="global-apikit-error-handler" />
+    </flow>
+    <flow name="patch:\resetPassword:application\json:dws-user-login-papi-config">
+
+    <!-- Log entry -->
+    <logger level="INFO" 
+            message="*** [PAPI] Received Reset Password request | CorrelationId: #[correlationId] ***" doc:name="Log Reset Password request"/>
+
+    <!-- Call subflow -->
+    <flow-ref name="patch-forgotPassword-flow" doc:name="Refer Forgot Pasword for reset"/>
+
+    <!-- Log success -->
+    <logger level="INFO" 
+            message="*** [PAPI] Forgot Password flow completed successfully | CorrelationId: #[correlationId] ***" doc:name="Log Password Updated"/>
+
+    <!-- Set response -->
+    <ee:transform doc:name="Transform Success Response">
+        <ee:message>
+            <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "Password updated successfully for the given Email:" ++ payload.email
+}]]></ee:set-payload>
+        </ee:message>
+        <ee:variables>
+            <ee:set-variable variableName="httpStatus"><![CDATA[200]]></ee:set-variable>
+        </ee:variables>
+    </ee:transform>
+		<error-handler ref="global-http-error-handler" />
+
+</flow>
+    <flow name="get:\healthCheck:dws-user-login-papi-config">
+		<ee:transform doc:name="Response Output" doc:id="9bcc71b6-e508-4bd0-9c17-6139b8856fb9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "Active",
+  apiName: p('api.name'),
+  message: "Application is Running",
+  timestamp: now()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler ref="global-apikit-error-handler" />
+    </flow>
+    <flow name="get:\users:dws-user-login-papi-config">
+
+    <!-- Log entry -->
+    <logger level="INFO" doc:name="Log - Start Get All Users"
+            message="*** [PAPI] Request received to get all registered users | CorrelationId: #[correlationId] ***" />
+
+    <!-- Call subflow -->
+    <flow-ref doc:name="Refer - Get All Users Subflow" name="get-alluser-flow" />
+
+    <!-- Log success -->
+
+    <!-- Transform and set HTTP status -->
+    <ee:transform doc:name="Transform Get All Users Response">
+        <ee:message>
+            <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+        </ee:message>
+        <ee:variables>
+            <ee:set-variable variableName="httpStatus">200</ee:set-variable>
+        </ee:variables>
+    </ee:transform>
+
+    <error-handler ref="global-http-error-handler" />
+</flow>
+    <flow name="get:\users\(email):dws-user-login-papi-config">
+    <logger level="INFO" doc:name="Log - Start Get User By Email Id"
+            message="*** [PAPI] Request received to fetch details for employee email Id: #[attributes.uriParams.email] | CorrelationId: #[correlationId] ***" />
+    <ee:transform doc:name="Store User's Email Id">
+        <ee:variables>
+				<ee:set-variable variableName="vEmail" ><![CDATA[attributes.uriParams.email]]></ee:set-variable>
+        </ee:variables>
+    </ee:transform>
+		<flow-ref doc:name="Refer - Get User By Email Id Subflow"
+              name="get-userByEmailId-flow" />
+    <ee:transform doc:name="Transform Get User By Email ID Response">
+        <ee:message>
+            <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map {
+    employeeId: vars.employeeId,
+    firstName: $.firstName,
+    lastName: $.lastName,
+    email: $.email,
+    department: $.department,
+    dateOfJoining: $.dateOfJoining,
+    phoneNumber: $.phoneNumber,
+    password: $.password
+}]]></ee:set-payload>
+        </ee:message>
+        <ee:variables>
+            <ee:set-variable variableName="httpStatus"><![CDATA[200]]></ee:set-variable>
+        </ee:variables>
+    </ee:transform>
+    <logger level="INFO" doc:name="Log - End Get User By Email Id"
+            message="*** [PAPI] Successfully retrieved details for user Email Id: #[vars.vEmail] | CorrelationId: #[correlationId] ***" />
+    <error-handler ref="global-http-error-handler" />
+</flow>
+     <flow name="post:\login:application\json:dws-user-login-papi-config">
+    <logger level="INFO" doc:name="Log - Start Login"
+        message="*** [PAPI] Received login request for email: #[payload.email] | CorrelationId: #[correlationId] ***" doc:id="4fd08be7-cfe3-45c4-923b-129306388fb9"/>
+    <flow-ref doc:name="Authenticate User via SAPI" name="post-authenticateUser-flow" />
+    <!-- [STUDIO:"Generate JWT Token"]<ee:transform doc:name="Generate JWT Token">
+        <ee:message>
+            <ee:set-payload><![CDATA[%dw 2.0
+import * from dw::Crypto
+import * from dw::core::Binaries
+output application/json
+
+var secretKey = "YOUR_SECRET_KEY"
+
+// JWT Header
+var header = {
+    alg: "HS256",
+    typ: "JWT"
+}
+
+// JWT Payload
+var claims = {
+    employeeId: payload.employeeId,
+    email: payload.email,
+    iat: (now() as Number) as Number,               // issued at
+    exp: ((now() + |PT1H|) as Number) as Number     // expires in 1 hour
+}
+
+// Base64Url Encode Function
+fun base64UrlEncode(obj) =
+    (Binaries::toBase64(write(obj, "application/json")))
+        replace "+" with "-"
+        replace "/" with "_"
+        replace "=" with ""
+
+// Encode header and payload
+var encodedHeader  = base64UrlEncode(header)
+var encodedPayload = base64UrlEncode(claims)
+
+// Create HMAC SHA256 signature
+var signature = Binaries::toBase64(
+                    HMAC("HmacSHA256",
+                         (encodedHeader ++ "." ++ encodedPayload),
+                         secretKey
+                    )
+                ) replace "+" with "-" replace "/" with "_" replace "=" with ""
+
+&#45;&#45;-
+{
+    employeeId: payload.employeeId,
+    token: encodedHeader ++ "." ++ encodedPayload ++ "." ++ signature
+}
+            &#93;&#93;></ee:set-payload>
+        </ee:message>
+    </ee:transform> [STUDIO] -->
+
+    <!-- [STUDIO:"Log - JWT Generated"]<logger level="INFO" doc:name="Log - JWT Generated"
+        message="*** [PAPI&#93; JWT generated successfully for employeeId: #[payload.employeeId&#93; | CorrelationId: #[correlationId&#93; ***" /> [STUDIO] -->
+    <error-handler ref="global-http-error-handler" />
+</flow>
+
+    <flow name="post:\users:application\json:dws-user-login-papi-config">
+        <flow-ref doc:name="Refer Register new user" doc:id="2b6ffa70-df00-43e5-992d-fc608df6b9fe" name="post-register-flow"/>
+		<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "User registered successfully",
+  employeeId: "DW001"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<ee:transform doc:name="Response Output" doc:id="b3d4e838-2da6-43ba-bc61-29b1cbd62e9a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler ref="global-http-error-handler" />
+    </flow>
+</mule>

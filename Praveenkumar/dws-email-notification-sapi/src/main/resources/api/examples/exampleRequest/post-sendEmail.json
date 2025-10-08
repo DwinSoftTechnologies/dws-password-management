@@ -1,0 +1,13 @@
+{
+  "to": [
+    "praveen123@gmail.com",
+    "pk321@gmail.com"
+  ],
+  "subject": "Welcome to the Portal",
+  "cc": [
+    "praveen123@gmail.com",
+    "pk321@gmail.com"
+  ],
+  "body": "Hello, your account has been successfully created.",
+  "bodyType": "text/plain"
+}

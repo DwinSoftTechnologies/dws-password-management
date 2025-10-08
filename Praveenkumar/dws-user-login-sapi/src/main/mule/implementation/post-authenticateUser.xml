@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<sub-flow name="post-authenticateUser-flow" doc:id="3c2879a4-aba1-4e35-96e5-f90d0a8f6cca" >
+		<logger level="INFO" doc:name="Start Authenticate User" doc:id="94ef6f6d-7d2c-40c1-bfbc-ea63d2a86001" message="*** Received authentication request for email: #[payload.email] | CorrelationId: #[correlationId] ***"/>
+		<until-successful maxRetries="${untilSuccess.maxRetries}" doc:name="Until Successful" doc:id="be149bbb-c41b-4ad8-912a-5a6e11a9fd4b" millisBetweenRetries="${untilSuccess.retriesTime}" >
+			<db:select doc:name="Select Authentication User" doc:id="e4a109f5-5854-4593-aeca-7db278d89a4d" config-ref="Database_Config">
+			<db:sql><![CDATA[${database_query.authentication}]]></db:sql>
+		</db:select>
+		</until-successful>
+		<logger level="INFO" doc:name="End Authenticate User" doc:id="b01c9b1f-5d05-4198-952f-93ab36379ada" message="*** User authentication successful for email: #[payload.email] | CorrelationId: #[correlationId] ***"/>
+	</sub-flow>
+</mule>

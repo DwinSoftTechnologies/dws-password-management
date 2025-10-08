@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<sub-flow name="check-vaultAccess-implSub_Flow" doc:id="ef3b0c69-20d5-4c59-8f6e-e235e9b180a5" >
+		<logger level="INFO" doc:name="Before check for vault access" doc:id="d973d9ec-71e2-4cbb-8ab3-04423e047858" message="Before check for vault access"/>
+		<ee:transform doc:name="set request attributes and requestPayload to check for vault access" doc:id="83a63841-b851-4206-825b-9b3a18f02d66" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="requestPreset" ><![CDATA[%dw 2.0
+output application/json
+---
+{"host": p('pwd_mngmt.sapi.host') ,
+"port": p('pwd_mngmt.sapi.port') ,
+"path": p('pwd_mngmt.sapi.getAssignVault.path') ++ "/" ++ payload.username ++ "/" ++ payload.requester_username ++ "/" ++ payload.vault_id ,
+"method": p('pwd_mngmt.sapi.getAssignVault.method')
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="check for vault access" doc:id="0eb0ba30-2ce4-43c9-9fb9-698856c6a077" name="common-pwd-management-sapi-callSub_Flow"/>
+		<logger level="INFO" doc:name="After check for vault access" doc:id="2ba9544d-1e17-49a7-a6b3-241823033b73" message="After check for vault access" />
+	</sub-flow>
+	<sub-flow name="create-vaultSub_Flow" doc:id="06c44ca5-dd48-43c6-bf2f-45955b3c9024" >
+		<logger level="INFO" doc:name="Before get all vaults" doc:id="4a867dfa-c960-44fa-80d2-c5fe01f1f72c" message="Before get all vaults"/>
+		<ee:transform doc:name="set request attributes for get all vaults" doc:id="63b8401b-d2dc-4246-8308-85f52951ae0c" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="requestPreset" ><![CDATA[%dw 2.0
+output application/json
+---
+{"host": p('pwd_mngmt.sapi.host') ,
+"port": p('pwd_mngmt.sapi.port') ,
+"path": p('pwd_mngmt.sapi.getVault.path') ++ "/" ++ payload.'username',
+"method": p('pwd_mngmt.sapi.getVault.method'),
+"headers": {"session _token": attributes.headers.session_token}
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="get all vaults" doc:id="5b9a038b-9b7c-4258-bba0-a97bafdc5f74" name="common-pwd-management-sapi-callSub_Flow"/>
+		<logger level="INFO" doc:name="After get all vaults" doc:id="def22872-69ac-4a4b-a76d-82951e3d86f5" message="After get all vaults"/>
+		<logger level="INFO" doc:name="check vault already exists or not" doc:id="caf8a457-e777-457d-892c-0cbf4bbb9b4f" message="check vault already exists or not"/>
+		<choice doc:name="check vault already exists or not" doc:id="9b8b4b1b-1768-49ca-840a-fb82047854c9" >
+			<when expression="#[payload.vault_name contains vars.inputPayload.vault_name]">
+				<raise-error doc:name="ERROR:DUPLICATE_VAULT" doc:id="721f8fe3-d8f0-4ede-978d-8064f800f774" type="ERROR:DUPLICATE_VAULT" description="Category already exists"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="creating vault" doc:id="fee74c1c-8e20-46ac-a30f-11ad258bb226" message="creating vault"/>
+				<ee:transform doc:name="set request attributes and requestPayload to create vault" doc:id="b097333f-ca01-4cad-8755-a8675907fc32" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="requestPreset" ><![CDATA[%dw 2.0
+output application/json
+---
+{"host": p('pwd_mngmt.sapi.host') ,
+"port": p('pwd_mngmt.sapi.port') ,
+"path": p('pwd_mngmt.sapi.createVault.path'),
+"method": p('pwd_mngmt.sapi.createVault.method'),
+"headers": {"session _token": vars.session_token}
+}]]></ee:set-variable>
+						<ee:set-variable variableName="requestPayload" ><![CDATA[%dw 2.0
+output application/json
+---
+vars.initialPayload ++ 
+{"vault_id": uuid(),
+"username": vars.session_token.username,	
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="create vault" doc:id="16280c6d-9e2a-4516-a351-9d285a312711" name="common-pwd-management-sapi-callSub_Flow"/>
+				<ee:transform doc:name="response payload" doc:id="21aad93b-973f-471e-b013-f0e61974017a" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

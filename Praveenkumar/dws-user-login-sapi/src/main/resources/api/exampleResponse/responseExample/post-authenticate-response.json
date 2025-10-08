@@ -1,0 +1,5 @@
+{
+  "message": "Authentication successful",
+  "employeeId": "DW001",
+  "token": "jwt-token-here"
+}

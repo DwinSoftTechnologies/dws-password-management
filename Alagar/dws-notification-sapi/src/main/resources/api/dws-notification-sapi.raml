@@ -1,0 +1,44 @@
+#%RAML 1.0
+title: dws-notification-sapi
+description: Notification System API for sending notifications to Users over mail
+version: v1
+mediaType: application/json
+protocols: [HTTP , HTTPS]
+
+uses:
+  "commonlib" : commonLibrary/library.raml
+
+
+/healthCheck:
+  get:
+    is:
+         - commonlib.errorResponse    
+         - commonlib.security  
+    description: Returns the health status of the API
+    responses:
+      200:
+        description: API is healthy and running
+        body:
+          application/json:
+            example: !include example/responseExample/healthCheck.json  
+/notifications:
+    post:
+      queryParameters:
+        type:
+          type: string
+          enum: [Email]
+          description: Creates a new notification over SMTP
+      is:
+         - commonlib.errorResponse    
+         - commonlib.security  
+      body:
+        application/json:
+          type: commonlib.EmailRequest
+          example: !include example/requestExample/emailRequest.json
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                !include example/responseExample/emailResponse.json
+                      

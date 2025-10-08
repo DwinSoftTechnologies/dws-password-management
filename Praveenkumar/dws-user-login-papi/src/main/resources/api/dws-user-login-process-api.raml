@@ -1,0 +1,126 @@
+#%RAML 1.0
+title: dws-user-login-papi
+version: v1
+protocols: [HTTP, HTTPS]
+description: This Process API manages Organizing of user registration, login authentication, and password reset functionalities by integrating System APIs.
+mediaType: 
+- application/json
+
+uses:
+  commonLibFile: commonLibrary.raml
+/healthCheck:
+  description: Returns the health status of the API
+  get:
+    is:
+      - commonLibFile.clientIdEnforcement
+      - commonLibFile.errorHandler
+    responses:
+      200:
+        body:
+          application/json:
+            example: !include exampleResponse/responseExample/get-healthCheck-response.json
+/users:
+  post:
+    description: Registers a new user into the organization's portal.
+    is:
+      - commonLibFile.clientIdEnforcement
+      - commonLibFile.errorHandler
+    body:
+      application/json:
+        type: commonLibFile.registerUser
+        example: !include exampleResponse/requestExample/post-registerUser-request.json
+    responses:
+      201:
+        body:
+          application/json:
+            example: !include exampleResponse/responseExample/post-registerUser-response.json
+
+  get:
+    description: Retrieves the list of all registered users.
+    is:
+      - commonLibFile.clientIdEnforcement
+      - commonLibFile.errorHandler
+    responses:
+      200:
+        body:
+          application/json:
+            example: !include exampleResponse/responseExample/get-registerUser.json
+
+  /{email}:
+    description: Retrieves a single registered user's details by their email.
+    uriParameters:
+      email:
+        type: string
+        pattern: ^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$
+        example: "praveen123@gmail.com"
+        description: Email of the User.
+    get:
+      is:
+        - commonLibFile.clientIdEnforcement
+        - commonLibFile.errorHandler
+      responses:
+        200:
+          body:
+            application/json:
+              example: !include exampleResponse/responseExample/get-registerUserByEmailId.json
+/login:
+  description: Authenticates the user portal access.
+  post:
+    is:
+      - commonLibFile.clientIdEnforcement
+      - commonLibFile.errorHandler
+    body:
+      application/json:
+        type: commonLibFile.authenticateUser
+        example: !include exampleResponse/requestExample/post-authenticate-request.json
+    responses:
+      200:
+        body:
+          application/json:
+            example: !include exampleResponse/responseExample/post-authenticate-response.json
+
+/forgotPassword:
+  description: Allows a user to reset their password.
+  patch:
+    is:
+      - commonLibFile.clientIdEnforcement
+      - commonLibFile.errorHandler
+    body:
+      application/json:
+        type: commonLibFile.forgotPassword
+        example: !include exampleResponse/requestExample/patch-forgotPassword-request.json
+    responses:
+      200:
+        body:
+          application/json:
+            example: !include exampleResponse/responseExample/patch-forgotPassword-response.json
+/sendOtp:
+  post:
+    description: Send the OTP to user.
+    is:
+      - commonLibFile.clientIdEnforcement
+      - commonLibFile.errorHandler
+    body:
+      application/json:
+        type: commonLibFile.sendOtp
+        example: !include exampleResponse/requestExample/post-sendOtp-request.json
+    responses:
+      201:
+        body:
+          application/json:
+            example: !include exampleResponse/responseExample/post-sendOtp-response.json
+/verifyOtp:
+  post:
+    description: Verify the OTP Sent by the user.
+    is:
+      - commonLibFile.clientIdEnforcement
+      - commonLibFile.errorHandler
+    body:
+      application/json:
+        type: commonLibFile.verifyOtp
+        example: !include exampleResponse/requestExample/post-verifyOtp-request.json
+    responses:
+      201:
+        body:
+          application/json:
+            example: !include exampleResponse/responseExample/post-verifyOtp-response.json

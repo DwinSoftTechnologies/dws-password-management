@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<os:config name="ObjectStore_Config" doc:name="ObjectStore Config" doc:id="72b278bb-9574-4c63-8133-c8c5396fd95b" >
+		<os:connection />
+	</os:config>
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="aa7a2f86-f01b-4266-bad3-76e7089697d4" maxEntries="-1" entryTtl="1" entryTtlUnit="MINUTES" config-ref="ObjectStore_Config" />
+	<sub-flow name="post-register-flow" doc:id="53222000-403b-4c35-8c7e-4961db5e42ab" >
+		<logger level="INFO" doc:name="Start Register New User" doc:id="6274f659-d60d-47cd-bede-108994930fdc" message="*** Received request to register a new user with email: #[payload.email] | CorrelationId: #[correlationId] ***"/>
+		<ee:transform doc:name="Stored vRegUser details" doc:id="e3f3b4f0-788e-46db-9ce4-897471234f42" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				
+				<ee:set-variable variableName="vRegUser"><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<http:request method="POST" doc:name="Request User Login SAPI" doc:id="5e4a5583-4e67-4716-95d3-d7837de86469" config-ref="http-user_login-sapi-request_configuration" path="${user_login_sapi.path.registerUser}">
+			<http:body ><![CDATA[#[vars.vRegUser]]]></http:body>
+		</http:request>
+		<ee:transform doc:name="OTP generation" doc:id="15bc0065-3dd6-4d28-93e2-eb2013438de4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+randomInt(1000000)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<os:store doc:name="Store OTP" doc:id="25fa6f8a-bb82-4d93-8830-0b9eb3f6e7b3" key="vOtp" objectStore="Object_store"/>
+		<http:request method="GET" doc:name="Request Send OTP" doc:id="419daf22-9660-4bcc-b785-e53316abec50" config-ref="http-email_notification-sapi-request_configuration" path="${email_notification_sapi.path.emailSend}"/>
+		<logger level="INFO" doc:name="End Register New User" doc:id="20e0d8ae-6d6d-4434-b2de-cd6898851d34" message="*** User registration completed successfully for email: #[payload.email] | CorrelationId: #[correlationId] ***"/>
+	</sub-flow>
+</mule>

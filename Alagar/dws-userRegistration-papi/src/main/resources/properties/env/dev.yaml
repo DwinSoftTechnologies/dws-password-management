@@ -1,0 +1,16 @@
+
+userRegistration-sapi:
+
+  host: "0.0.0.0"
+  port : "8082"
+  basePath: "/api/"
+  signup: "signup"  
+  forgetPassword: "signin/forgotPassword"
+  
+api: 
+  instanceId: ""
+  
+untilSuccessful:
+  maxRetries : "3"
+  retriesTime : "60000"
+ 
