@@ -1,6 +1,0 @@
-api: 
-  instanceId: ""
-  
-untilSuccessful:
-  maxRetries : "3"
-  retriesTime : "60000"

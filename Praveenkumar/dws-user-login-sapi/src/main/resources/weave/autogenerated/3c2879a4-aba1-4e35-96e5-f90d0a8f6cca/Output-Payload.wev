@@ -1,8 +1,0 @@
-%dw 2.0
-
-type auto_3c2879a4_aba1_4e35_96e5_f90d0a8f6cca_Output_Payload = {
-  password: String, 
-  email: String, 
-  _?: Any
-}
-

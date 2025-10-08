@@ -1,8 +1,0 @@
-{
-  "from": "admin@dwinsoft.in",
-  "to": ["support@dwinsoft.in"],
-  "cc": ["hr@dwinsoft.in"],
-  "subject": "Sample Notification Subject",
-  "body": "Sample Body",
-  "bodyType": "text/plain"
-} 

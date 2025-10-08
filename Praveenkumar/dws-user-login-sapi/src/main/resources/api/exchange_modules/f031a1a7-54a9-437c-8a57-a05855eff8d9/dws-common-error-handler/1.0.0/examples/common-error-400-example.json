@@ -1,6 +1,0 @@
-{
-  "code": 400,
-  "reason": "Bad Request",
-  "message": "The request is invalid or malformed",
-  "type": "APP:BAD_REQUEST"
-}

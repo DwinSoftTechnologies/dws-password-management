@@ -1,0 +1,18 @@
+[{
+  "firstName": "vignesh",
+  "lastName": "r",
+  "userName": "vigneshdwin",
+  "userId":"DW01",
+  "email": "vignesh@dwin.com",
+  "company": "Juul",
+  "phoneNumber": "+91 9360521845"
+},
+{
+  "firstName": "dinesh",
+  "lastName": "k",
+  "userName": "dineshdwin",
+  "userId":"DW02",
+  "email": "dinesh@dwin.com",
+  "company": "Juul",
+  "phoneNumber": "+91 6360521845"
+}]

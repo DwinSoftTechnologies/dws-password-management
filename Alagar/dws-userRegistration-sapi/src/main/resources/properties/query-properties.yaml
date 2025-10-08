@@ -1,7 +1,0 @@
-###DataBase queries ###
-
-database:
- insert_signup : "INSERT INTO register (employeeid, name, email, phonenumber, password, company) VALUES(:employeeid, :name, :email, :phonenumber, :password, :company)"
- select_signup: "SELECT employeeid, name, email, phonenumber, password, company FROM register"
- patch_signup: "UPDATE register SET password= :password  WHERE email= :email or phonenumber= :phonenumber;"
- 
