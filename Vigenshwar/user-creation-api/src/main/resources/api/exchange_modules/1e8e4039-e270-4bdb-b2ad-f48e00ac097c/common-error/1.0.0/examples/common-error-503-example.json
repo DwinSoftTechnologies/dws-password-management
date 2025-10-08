@@ -1,0 +1,6 @@
+{
+  "code": 503,
+  "reason": "Service Unavailable",
+  "message": "The service is temporarily unavailable. Please try again later",
+  "type": "SERVICE_UNAVAILABLE"
+}

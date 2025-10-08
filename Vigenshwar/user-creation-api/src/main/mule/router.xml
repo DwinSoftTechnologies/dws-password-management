@@ -1,0 +1,52 @@
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:cloudhub="http://www.mulesoft.org/schema/mule/cloudhub" xmlns:coupa="http://www.mulesoft.org/schema/mule/coupa" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:min-log="http://www.mulesoft.org/schema/mule/min-log" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd   http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd   http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd      http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd     http://www.mulesoft.org/schema/mule/min-log http://www.mulesoft.org/schema/mule/min-log/current/mule-min-log.xsd http://www.mulesoft.org/schema/mule/cloudhub http://www.mulesoft.org/schema/mule/cloudhub/current/mule-cloudhub.xsd http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+       <http:listener-config name="user-creation-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="user-creation-api-config" api="user-creation-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="user-creation-api-main">
+        <http:listener config-ref="user-creation-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <ee:transform doc:name="transactionId" doc:id="1d698cd9-5568-45a0-afba-2d1b1abf3499" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="transactionProperties" ><![CDATA[%dw 2.0
+output application/json
+---
+uuid()]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="logging obj" doc:id="5d957d50-df06-410c-ba52-0096be7fb9da">
+            <ee:message />
+            <ee:variables>
+                <ee:set-variable variableName="inPayload"><![CDATA[%dw 2.0
+output application/json
+---
+if (upper(attributes.method) != "GET") write(payload default {}, "application/json")
+else null]]></ee:set-variable>
+                <ee:set-variable variableName="transactionId"><![CDATA[%dw 2.0
+output application/json
+---
+vars.transactionProperties]]></ee:set-variable>
+                <ee:set-variable variableName="loggingObjCommon"><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "source": "",
+    "muleFlowName": "user-creation-api-main",
+    "transactionId": vars.transactionProperties,
+    "processName": "ProcessName" 
+}]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<apikit:router config-ref="user-creation-api-config" />
+		<error-handler ref="globalError_Handler" />
+    </flow>
+</mule>

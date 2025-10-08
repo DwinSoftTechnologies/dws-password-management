@@ -1,0 +1,23 @@
+#%RAML 1.0 Library
+usage:
+
+types:
+  userCreation: !include ../dataType/userCreationDataType.raml
+
+  updateUser: !include ../dataType/updateUserDataType.raml
+
+  loginUser: !include ../dataType/loginUserdataType.raml
+
+  forgotPassword: !include ../dataType/forgotPasswordDataType.raml
+
+traits:
+  commonError: !include exchange_modules/1e8e4039-e270-4bdb-b2ad-f48e00ac097c/common-error/1.0.0/common-error-handler.raml
+
+  policy: !include exchange_modules/1e8e4039-e270-4bdb-b2ad-f48e00ac097c/policy/1.0.0/common-clientid-enforcement-security-scheme.raml
+
+
+
+
+
+
+

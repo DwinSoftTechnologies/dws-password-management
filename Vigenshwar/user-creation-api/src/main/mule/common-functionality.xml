@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq"
+	xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+	xmlns:java="http://www.mulesoft.org/schema/mule/java"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
+	xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd 
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd">
+
+<flow name="sendLoggingEvent_flow" doc:id="85b6102b-dd8d-41da-a7b4-a58e00429d48" >
+		<ee:transform doc:name="logPayload" doc:id="524550c8-1208-4080-bd99-e6d55ef62e20" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="logPayload" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "transactionColumns": {
+    "source": vars.loggingObj.source,
+    "destination": vars.loggingObj.destination,
+    "sourceFormat": "JSON",
+    "destinationFormat": "JSON",
+    "direction": "INBOUND",
+    "createdDate": (now() >> 'PST' as String {format: "yyyy-MM-dd'T'HH:mm:ss" }),
+    "processName": vars.loggingObj.processName,
+    "status": vars.loggingObj.status
+  },
+  "detailColumns": {
+  	"identification": [
+      {
+        "name": vars.loggingObj.identifier,
+        "value": vars.loggingObj.identifierVal
+      }
+    ],  
+    "requestPayload": vars.loggingObj.requestPayload default null,
+    "responsePayload": vars.loggingObj.responsePayload default null
+  },
+  "integrationColumns":{
+    "muleAppName": "User-Creation",
+    "muleFlowName": vars.loggingObj.muleFlowName,
+    "transactionId": vars.loggingObj."transactionId",
+    "environment": upper(p('mule.env'))
+  },
+  "errorColumns":{
+    "severity": vars.loggingObj.severity default "",
+    "errorCode": vars.loggingObj.errorCode default "",
+    "errorMessage": vars.loggingObj.errorMessage default "",
+    "emailTo": vars.loggingObj.emailTo default "",
+    "emailCC": vars.loggingObj.emailCC default "",
+    "emailSubject": vars.loggingObj.emailSubject default ""
+  },
+  "loggingSystems": "logger"
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logging API Request Payload" doc:id="1ec4fb27-71ff-44f6-be51-8996cb196c06" message="Event Logging Payload: #[vars.logPayload]"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="c87ddb22-ff6f-4e9a-8424-040928a52ced" >
+				<logger level="ERROR" doc:name="Error" doc:id="b3e66f69-7fee-4618-9eb1-83c57630b04b" message="Exception in sending the Event to Logging API, TransactionId: #[vars.transactionId]" />
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	
+</mule>

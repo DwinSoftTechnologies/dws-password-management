@@ -1,0 +1,6 @@
+{
+  "code": 405,
+  "reason": "Method Not Allowed",
+  "message": "The requested HTTP method is not supported for this endpoint",
+  "type": "METHOD_NOT_ALLOWED"
+}
