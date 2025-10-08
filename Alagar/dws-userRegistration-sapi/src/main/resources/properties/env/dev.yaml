@@ -1,0 +1,13 @@
+
+database:
+  url: "jdbc:postgresql://155.133.26.236:5432/useralagar"
+  driverClassName: "org.postgresql.Driver"
+
+  
+api: 
+  instanceId: "20477049"
+  
+untilSuccessful:
+  maxRetries : "3"
+  retriesTime : "60000"
+ 

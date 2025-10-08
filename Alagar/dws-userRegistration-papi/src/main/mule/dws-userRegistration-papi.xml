@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <flow name="dws-userRegistration-papi-main">
+        <http:listener path="${http.path}" config-ref="dws-userRegistration-papi-listener-config">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="dws-userRegistration-papi-config" />
+        <error-handler ref="global-apikit-error-handler">
+           </error-handler>  
+           </flow>
+    <flow name="patch:\user\forgotPassword:application\json:dws-userRegistration-papi-config" doc:id="b5225e9d-7ef0-4427-a39d-e70bee5f52d5">
+        <flow-ref doc:name="Flow Refer Patch User Forgot Password Sub Flow" doc:id="241f2bbd-f29d-424f-bc05-7d8bfd11e89f" name="patch-user-forgotPasswordSub_Flow"/>
+		<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "Password changed successfully"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\healthCheck:dws-userRegistration-papi-config">
+        <logger level="INFO" doc:name="Log - Before  Health Check " doc:id="cd517140-e5b4-4649-9889-3859bbc041ac" message="*** GET /health endpoint triggered | Timestamp: #[now() as String {format:'yyyy-MM-dd HH:mm:ss.SSS'}] | CorrelationId: #[correlationId] ***" />
+		<ee:transform doc:name="Health Chech Response" doc:id="9d602f54-e21f-4ec9-9d2b-cd65bec96002" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "Active",
+  apiName: p('project.name'),
+  message: "Application is Running",
+  timestamp: (now() >> "IST" as String {format: "yyyy-MM-dd HH:mm:ss.SSS"})
+
+} ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log - After Health Check " doc:id="017137e2-ab7b-4d78-92f9-c05014108612" message="*** Health check responded with: #[payload] | Timestamp: #[now() as String {format:'yyyy-MM-dd HH:mm:ss.SSS'}] | CorrelationId: #[correlationId] ***" />		
+    </flow>
+    <flow name="post:\user\generateForgotPasswordOTP:application\json:dws-userRegistration-papi-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "OTP send successfully"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\signup\generateSignupOTP:application\json:dws-userRegistration-papi-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "OTP send successfully"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\resendOTP:application\json:dws-userRegistration-papi-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "OTP send successfully"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\user\signin:application\json:dws-userRegistration-papi-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "User signin successfully"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\signup:application\json:dws-userRegistration-papi-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "User registered successfully"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+</mule>

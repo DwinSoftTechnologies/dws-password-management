@@ -1,0 +1,19 @@
+#Common Properties used for all API and the whole project
+project:
+  name: dws-notification-sapi
+  layer: system
+  
+### API HTTP Listener configuration
+http:
+  default:
+    httptimeout: "30000"
+  path: "/api/*" 
+  host: "0.0.0.0"
+  port: "8081"
+  
+https:
+  default:
+    httptimeout: "30000"
+  path: "/api/*" 
+  host: "0.0.0.0"
+  port: "8082"

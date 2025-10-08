@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:outlook365="http://www.mulesoft.org/schema/mule/outlook365" xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/outlook365 http://www.mulesoft.org/schema/mule/outlook365/current/mule-outlook365.xsd">
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="6cba251a-3997-4471-919e-798afed0a21c" >
+		<email:smtp-connection host="smtp.office365.com" port="587" user="alagarsamyp@dwinsoft.in" password="Alagar@123">
+			<email:properties >
+				<email:property key="mail. smtp. starttls. enable" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+	<email:smtp-config name="Email_SMTP-test" doc:name="Email SMTP" doc:id="329ddb6a-198d-44dc-bec2-35703e60d613">
+        <email:smtp-connection host="smtp.gmail.com" port="587" user="test0987email@gmail.com" password="bbyr wugk aasq qnig" timeoutUnit="MINUTES" connectionTimeout="1" readTimeout="1" writeTimeout="1">
+            <email:properties>
+                <email:property key="mail.smtp.starttls.enable" value="true" />
+            </email:properties>
+        </email:smtp-connection>
+    </email:smtp-config>
+	<sub-flow name="post-email-flowSub_Flow" doc:id="fb753871-c4f8-42ee-af8e-5abf2605ad0a" >
+		<ee:transform doc:name="Transform Message" doc:id="44160934-0a1e-47c8-a347-3184a86b7e8a" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="vEmailBodyType" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.bodyType]]></ee:set-variable>
+				<ee:set-variable variableName="vEmailAttachments" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.attachments ]]></ee:set-variable>
+				<ee:set-variable variableName="vEmailSubject" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.subject]]></ee:set-variable>
+				<ee:set-variable variableName="vccAddress" ><![CDATA[%dw 2.0
+output application/java
+---
+p('SMTP.cc')]]></ee:set-variable>
+				<ee:set-variable variableName="vFromAddress" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.from  default  p('SMTP.from')]]></ee:set-variable>
+				<ee:set-variable variableName="vToAddress" ><![CDATA[%dw 2.0
+output application/java
+---
+ p('SMTP.to')]]></ee:set-variable>
+				<ee:set-variable variableName="vEmailBody" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.body]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="c39aee5d-fd8d-4523-b5e9-7f4d27c5ee19" message="#[vars.vToAddress]"/>
+		<until-successful maxRetries="${untilSuccessful.maxRetries}" doc:name="Until Successful" doc:id="8653d8f2-5b14-4c99-a6f9-dbe8fbbb88ab" millisBetweenRetries="${untilSuccessful.retriesTime}" >
+			<try doc:name="Try" doc:id="9843593e-df40-4b0a-8a3b-112bea577ab4" >
+				<email:send doc:name="smtp-send email" doc:id="369e9038-2fcb-439a-b21c-d4efcf875f1b" config-ref="email-SMTP-config" fromAddress="#[vars.vFromAddress]" subject="#[vars.vEmailSubject]" toAddresses="#[vars.vToAddress]" ccAddresses="#[vars.vccAddress]">
+					<email:body contentType="#[vars.vEmailBodyType]">
+						<email:content><![CDATA[#[vars.vEmailBody]]]></email:content>
+					</email:body>
+					<email:attachments><![CDATA[#[vars.vEmailAttachments]]]></email:attachments>
+				</email:send>
+				<ee:transform doc:name="success Response" doc:id="0c7099bb-9ea1-4e48-b4f4-da030d4b1d21" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{statusCode: 200,
+  status: p('project.name'),
+  timestamp: (now() >> "IST" as String {format: "yyyy-MM-dd HH:mm:ss.SSS"})
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<error-handler ref="email-error-handler" />
+			</try>
+		</until-successful>
+	</sub-flow>
+</mule>

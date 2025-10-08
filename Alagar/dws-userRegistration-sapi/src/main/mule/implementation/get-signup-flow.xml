@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<sub-flow name="get-signup-flowSub_Flow" doc:id="e1de684a-fb3b-4267-994f-ccbe328c543b" >
+    <logger level="INFO" doc:name="Log - Before Select DB Call"
+        message="*** Starting DB SELECT from Signup table | Timestamp: #[now() as String {format:'yyyy-MM-dd HH:mm:ss.SSS'}] | CorrelationId: #[correlationId] ***" />
+		<until-successful maxRetries="${untilSuccessful.maxRetries}" doc:name="Until Successful" doc:id="16720aa5-0cd3-4d46-bcd7-273f87b4e9c7" millisBetweenRetries="${untilSuccessful.retriesTime}">
+			<try doc:name="Try" doc:id="e7d9ce98-56a1-4c4c-9365-d32b7dc1911c">
+			<db:select doc:name="Select Database" doc:id="26c6799b-0233-44f7-9c98-133702f996d1" config-ref="Database_Config">
+					<db:sql><![CDATA[#[payload]]]></db:sql>
+		</db:select>
+				<error-handler ref="global-db-error-handler" />
+		</try>
+		</until-successful>
+		<logger level="INFO" doc:name="Log - After Select DB Call"
+        message="*** Successfully retrieved records from Signup | Timestamp: #[now() as String {format:'yyyy-MM-dd HH:mm:ss.SSS'}] | CorrelationId: #[correlationId] ***" />
+	
+	</sub-flow>
+</mule>

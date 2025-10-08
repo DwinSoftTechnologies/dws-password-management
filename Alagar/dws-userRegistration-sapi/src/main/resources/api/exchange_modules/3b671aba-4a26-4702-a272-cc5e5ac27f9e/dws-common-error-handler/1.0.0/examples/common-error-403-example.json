@@ -1,0 +1,6 @@
+{
+  "code": 403,
+  "reason": "Forbidden",
+  "message": "You do not have permission to access this resource",
+  "type": "FORBIDDEN_ERROR"
+}

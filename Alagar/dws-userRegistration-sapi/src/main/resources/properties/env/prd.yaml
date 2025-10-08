@@ -1,0 +1,14 @@
+
+database:
+  url: ""
+  driverClassName: "org.postgresql.Driver"
+  username: "dwinsoft_trainee"
+  password: "Good@123K"
+  
+api: 
+  instanceId: ""
+  
+untilSuccessful:
+  maxRetries : "3"
+  retriesTime : "60000"
+ 

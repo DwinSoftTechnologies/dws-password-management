@@ -1,0 +1,8 @@
+
+{
+  "employeeID": "DW001",
+  "name": "John Doe",
+  "email": "johndoe@example.com",
+  "phoneNumber": "123-456-7890",
+  "password": "mySecurePassword123"
+}
