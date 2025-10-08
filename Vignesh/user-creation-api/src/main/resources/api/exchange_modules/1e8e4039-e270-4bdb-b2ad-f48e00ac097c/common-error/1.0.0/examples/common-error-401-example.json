@@ -1,0 +1,6 @@
+{
+  "code": 401,
+  "reason": "Unauthorized",
+  "message": "Authentication failed. Please check your credentials or authentication method.",
+  "type": "AUTHENTICATION_ERROR"
+}

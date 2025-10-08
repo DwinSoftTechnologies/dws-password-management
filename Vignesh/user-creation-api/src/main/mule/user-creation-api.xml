@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+
+    <db:config name="Database_Config" doc:name="Database Config" doc:id="1a91ef4e-5585-4f16-9efd-c4e092cf4a65" >
+		<db:generic-connection url="jdbc:postgresql://155.133.26.236:5432/postgres" driverClassName="org.postgresql.Driver" user="vignesh" password="vignesh123" />
+	</db:config>
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="658ce2a4-c7c2-43f9-83df-417bebce1acf" >
+		<email:smtp-connection host="smtp.gmail.com" user="vigneshsrv646@gmail.com" password="uzqv asql oqdo xfdq" port="587">
+			<email:properties >
+				<email:property key="mail.smtp.starttls.enable" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+	<flow name="put:\userCreation\(userId):application\json:user-creation-api-config">
+        <logger level="INFO" doc:name="Logger" doc:id="699e2a66-893d-45b6-9331-426ab12f4bb2" message="Process started for user update user details" />
+		<ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <db:update doc:name="Update" doc:id="e642065d-a381-4cef-8f0f-3e62aeed694f" config-ref="Database_Config">
+			<db:sql ><![CDATA[UPDATE registerUser
+SET
+  first_name   = COALESCE(:first_name, first_name),
+  last_name    = COALESCE(:last_name, last_name),
+  user_name    = COALESCE(:user_name, user_name),
+  email        = COALESCE(:email, email),
+  company      = COALESCE(:company, company),
+  phone_number = COALESCE(:phone_number, phone_number),
+  password     = COALESCE(:password, password)
+WHERE userId = :userId;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+  userId: vars.userid,
+  first_name: if (!isEmpty(payload.firstName)) payload.firstName else null,
+  last_name: if (!isEmpty(payload.lastName)) payload.lastName else null,
+  user_name: if (!isEmpty(payload.userName)) payload.userName else null,
+  email: if (!isEmpty(payload.email)) payload.email else null,
+  company: if (!isEmpty(payload.company)) payload.company else null,
+  phone_number: if (!isEmpty(payload.phoneNumber)) payload.phoneNumber else null,
+  password: if (!isEmpty(payload.password)) payload.password else null
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "The user has been updated successfully for the user"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="6f895911-1f42-478a-a2d2-ec2dc79b36e5" message="Process completed for user update user details" />
+    </flow>
+    <flow name="patch:\userLogin\forgotPassword:application\json:user-creation-api-config">
+        <logger level="INFO" doc:name="Logger" doc:id="0319ed70-342f-4941-9c34-2f7ef0f1ed77" message="Process started for user update password" />
+		<set-variable value="#[payload]" doc:name="inpayload" doc:id="e0c03d1c-5cfa-40e4-9ef3-c504f27e99ac" variableName="inPayload" />
+		<db:select doc:name="retrieving users" doc:id="68c9c178-722f-44b9-a74f-a86eb863a6fd" config-ref="Database_Config" target="usersDb">
+			<db:sql><![CDATA[select * from registeruser where email= :email;
+]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	email : vars.inPayload.email
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="ac7f94a1-d8c4-4a73-9548-0e2540302678" >
+			<when expression="#[!isEmpty(vars.usersDb)]">
+				<db:update doc:name="Update" doc:id="4f880b71-7e54-4def-9983-0ae85b8f51af" config-ref="Database_Config" >
+					<db:sql ><![CDATA[UPDATE registerUser
+SET password = :password
+WHERE email = :email]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	email : vars.inPayload.email,
+	password: vars.inPayload.password
+}]]]></db:input-parameters>
+				</db:update>
+				<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "The new-password has been updated successfully"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="f6a34169-6eb2-4b36-a29f-3c8d232632eb" message="Process completed for password update"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="2546a494-3bf3-4722-916d-6dbce726ec9d" message="The provided email haven't registered for 1password"/>
+				<ee:transform doc:name="Transform Message" doc:id="0c66571f-0120-4d17-ba71-b3f7d63abcee" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"The provided email haven't registered for 1password"]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+    </flow>
+    <flow name="get:\userCreation:user-creation-api-config">
+        <logger level="INFO" doc:name="Logger" doc:id="97854e60-6020-4d2f-8f36-967f609421e1" message="Process started to retrive all users " />
+		<db:select doc:name="retrieving users" doc:id="b96e5abc-1206-47c7-befa-f801a6616eee" config-ref="Database_Config">
+			<db:sql><![CDATA[select * from registeruser;
+]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="c3ba932d-45ab-45b2-8100-12401a83de1d" message="Process completed to retrive all users " />
+    </flow>
+    <flow name="get:\userCreation\(userId):user-creation-api-config">
+        <logger level="INFO" doc:name="Logger" doc:id="b3484c24-a408-4d1a-8466-9800fb32e4b0" message="Process started to retrive specific user" />
+		<ee:transform doc:name="Transform Message">
+            <ee:variables>
+				<ee:set-variable variableName="userId" ><![CDATA[attributes.uriParams.'userId']]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <db:select doc:name="retrieving users" doc:id="fc1599fb-0e18-4acd-b635-b0f8b92acb20" config-ref="Database_Config">
+			<db:sql><![CDATA[select * from registeruser where userid= :userid;
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userid : vars.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload[0]]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="df45389d-151e-436a-85ed-5f898c063458" message="Process started to retrive specific user" />
+    </flow>
+    <flow name="post:\userCreation:application\json:user-creation-api-config">
+        <logger level="INFO" doc:name="Logger" doc:id="054c5f68-2220-4365-b828-5cc00f34f375" message="Process started for user creation"/>
+		<set-variable value="#[payload]" doc:name="inpayload" doc:id="d2823c1c-7707-464d-ba06-05aa3dac42cd" variableName="inPayload" />
+		<db:select doc:name="retrieving users" doc:id="f460a956-3414-4e19-88cd-5a262e8fb477" config-ref="Database_Config" target="usersDb">
+			<db:sql ><![CDATA[select * from registeruser where email= :email and password= :password;
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	email : vars.inPayload.email,
+	password : vars.inPayload.password
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="To check whether user already exists" doc:id="f198585f-7610-4ae1-8c19-5b60c95cbfd7" >
+			<when expression="#[isEmpty(vars.usersDb)]">
+				<db:insert doc:name="Creating users" doc:id="b9290229-5554-4c85-802f-483298ff4883" config-ref="Database_Config">
+			<db:sql><![CDATA[INSERT INTO registerUser (first_name,last_name,user_name,email,company,phone_number,password) VALUES (:first_name,:last_name,:user_name,:email,:company,:phone_number,:password);]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	first_name: vars.inPayload.firstName,
+	last_name: vars.inPayload.lastName,
+	user_name: vars.inPayload.userName,
+	email: vars.inPayload.email,
+	company: vars.inPayload.company,
+	phone_number: vars.inPayload.phoneNumber,
+	password: vars.inPayload.password
+	
+}]]]></db:input-parameters>
+		</db:insert>
+				<db:select doc:name="Select" doc:id="41687a2b-40db-4acc-a79e-ad18b3cc23e1" config-ref="Database_Config">
+					<db:sql ><![CDATA[select userId,user_name from registerUser where email= :email and password= :password;
+]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	email : vars.inPayload.email,
+	password : vars.inPayload.password
+}]]]></db:input-parameters>
+				</db:select>
+				<ee:transform doc:name="userid" doc:id="4dc78d07-53f6-4b6f-9b0b-35c045accab0">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="userId"><![CDATA[output application/json
+---
+payload.userid[0]]]></ee:set-variable>
+						<ee:set-variable variableName="username" ><![CDATA[output application/json
+---
+payload.user_name[0]]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<set-variable value='#["The userId for the employee " ++ vars.username ++ " is : " ++ vars.userId ++ ""]' doc:name="Set Variable" doc:id="33da765c-e67e-4fb4-a9f9-521ce5c2f663" variableName="sub"/>
+				<email:send doc:name="Send" doc:id="558a099c-ae80-4570-bcdd-a3b090900bbe" config-ref="Email_SMTP" fromAddress="vigneshsrv646@gmail.com" subject="UserId for the created employee">
+					<email:to-addresses >
+						<email:to-address value="warv5746@gmail.com" />
+					</email:to-addresses>
+					<email:body contentType="text/plain" encoding="UTF-8">
+						<email:content ><![CDATA[#[%dw 2.0
+output application/java
+---
+write(vars.sub,"text/plain")]]]></email:content>
+					</email:body>
+				</email:send>
+				<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+"message" : "The user has been created successfully for 1Password and the userId has been sent to the registered email: " ++ vars.inpayload.email ++ " and userid is: " ++ vars.userId ++ ""
+
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="f0b29b00-add3-4604-ba59-1a48bb5e2153" message="Process completed for userCreation" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="User already exixts" doc:id="1c1c969d-0f09-4bbb-bb31-3a12a1a780a0" message="User Already exists Please login using your credentials"/>
+			</otherwise>
+		</choice>
+    </flow>
+    <flow name="post:\userLogin:application\json:user-creation-api-config">
+        <logger level="INFO" doc:name="Logger" doc:id="fcc31979-9868-4cac-b51f-2d3d800c57f7" message="Process started for userLogin"/>
+		<set-variable value="#[payload]" doc:name="inpayload" doc:id="b95318e4-5319-474d-b9af-9683443714b5" variableName="inPayload" />
+		<db:select doc:name="retrieving users" doc:id="7fd9c204-b25d-4520-916b-c4d5b7baff22" config-ref="Database_Config" target="usersDb">
+			<db:sql><![CDATA[select * from registeruser where email= :email and password= :password;
+]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	email : vars.inPayload.email,
+	password : vars.inPayload.password
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="0dc46d19-3764-4dc4-b2f4-d2edcd0cda36">
+			<when expression="#[!isEmpty(vars.usersDb)]">
+				<ee:transform doc:name="Transform Message" doc:id="959eb151-0f45-4f13-95e9-6c8d6f121f8a">
+					<ee:message>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="id" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"userid" : vars.usersDb.userid[0],
+	"transactionId": uuid()
+}]]></ee:set-variable>
+						<ee:set-variable variableName="timestamp" ><![CDATA[%dw 2.0
+output application/json
+---
+(now() >> "Asia/Kolkata") 
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<db:insert doc:name="Insert" doc:id="7041e976-1bfa-49c7-a2dd-b43148a16d75" config-ref="Database_Config">
+					<db:sql ><![CDATA[INSERT INTO user_transactions (userid, timestamp, transaction_id)
+VALUES (:userid,:timestamp,:transaction_id);
+]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	userid : vars.id.userid,
+	timestamp : (vars.timestamp as DateTime) as LocalDateTime,
+	transaction_id : vars.id.transactionId
+}]]]></db:input-parameters>
+				</db:insert>
+				<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "The user has been loggedIn successfully and usertoken: " ++ vars.id.transactionId ++""
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="6de00341-5b21-4a30-af05-ca750b8bd791" message="Process completed for user creation"/>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Message" doc:id="c4a0307d-85ee-473a-81aa-dfd638e592e2">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "user credentials are invalid please register and login again"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="e6d36e88-db8f-47b1-a24f-1d047d861a2c" message="user credentials are invalid please register and login again" />
+			</otherwise>
+		</choice>
+    </flow>
+</mule>

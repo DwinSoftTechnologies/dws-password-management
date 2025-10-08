@@ -1,0 +1,6 @@
+{
+  "code": "429",
+  "reason": "Too Many Requests",
+  "message":  "Maximum number of permitted request exceeded. Please try again later",
+  "type": "ATOO_MANY_REQUESTS"
+}
